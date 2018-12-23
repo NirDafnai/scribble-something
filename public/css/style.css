@@ -1,0 +1,8 @@
+canvas {
+    border:0.5px solid black;
+    border-radius: 15%;
+    cursor: url(../img/cursor.png), crosshair;
+}
+body {
+    user-select: none;
+}

@@ -1,0 +1,14 @@
+{
+  "name": "scribble-something",
+  "version": "1.0.0",
+  "description": "Drawing App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Nir Dafnai",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^4.0.0"
+  }
+}
