@@ -6,22 +6,63 @@ class Canvas
     {
         this.canvas = document.getElementById('drawingCanvas');
         this.context = this.canvas.getContext("2d");
-        this.paint;
+        this.drawing = false;
+        this.strokeSize = 3;
         this.userPos = {x: 0, y: 0};
+        this.strokeButton = document.getElementById('circle1');
+        this.strokeButtonPressed = false;
         this.addListeners();
     }
     addListeners() 
     {
         const self = this;
         this.canvas.addEventListener("mousedown", function(event) {
+            self.drawing = true;
+            console.log(self.drawing)
             self.setPosition(event);
         });
-        this.canvas.addEventListener("mousemove", function(event) {
+        addEventListener("mousemove", function(event) {
             self.draw(event);
         });
-        this.canvas.addEventListener("mouseenter", function(event) {
-            self.setPosition(event);
+        addEventListener("mouseup", function(event) {
+            self.drawing = false;
+            self.strokeButtonPressed = false;
+        })
+
+        let pos1 = 0;
+
+        this.strokeButton.addEventListener("mousedown", function(event) {
+            self.strokeButtonPressed = true;
         });
+        addEventListener("mousemove",function(event) {
+            if (self.strokeButtonPressed) 
+            {
+                if(event.pageX > pos1) 
+                {
+                    if(self.strokeSize < 50)
+                    {
+                        self.strokeSize += 2.5
+                        self.strokeButton.style.height = `${self.strokeButton.clientHeight + 5}px`;
+                        self.strokeButton.style.width = `${self.strokeButton.clientWidth + 5}px`;
+                        console.log(self.strokeSize)
+                    }
+                    pos1 = event.pageX;
+                }
+                else if(event.pageX < pos1)
+                {
+                    if(self.strokeSize > 3) 
+                    {
+                        self.strokeSize -= 2.5
+                        self.strokeButton.style.height = `${self.strokeButton.clientHeight - 5}px`;
+                        self.strokeButton.style.width = `${self.strokeButton.clientWidth - 5}px`;
+                        console.log(self.strokeSize)
+                    }
+                    pos1 = event.pageX;
+
+                }
+            }
+        });
+
     }
     getMouseCoordinates(event, canvas) {
         const mouseX = event.pageX - canvas.offsetLeft;
@@ -30,8 +71,9 @@ class Canvas
     }
     draw(event) {
         if(event.buttons !== 1) return; // If mouse is clicked then exit out of the function.
+        if (!this.drawing) return;
         this.context.beginPath();
-        this.context.lineWidth = 5; // width of line
+        this.context.lineWidth = this.strokeSize; // width of line
         this.context.lineCap = "round"; // rounded end cap
         this.context.moveTo(this.userPos.x, this.userPos.y);
         this.setPosition(event);
@@ -52,5 +94,6 @@ class Canvas
 }
 function main() {
     new Canvas();
+
 }
 main();

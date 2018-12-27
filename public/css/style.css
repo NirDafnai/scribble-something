@@ -6,3 +6,12 @@ canvas {
 body {
     user-select: none;
 }
+.hello {
+    border-radius:50px;
+}
+.circle {
+    height: 25px;
+    width: 25px;
+    background-color: black;
+    border-radius: 50%;
+}

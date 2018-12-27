@@ -12,7 +12,7 @@ function appStart(mainMenuTemplate)
     app.on('ready', function() 
     {
         // Create new window
-        mainWindow = new BrowserWindow({});
+        mainWindow = new BrowserWindow({width:1024, height:1024});
         // Load html into window
         mainWindow.loadURL(url.format({
             pathname: path.join(__dirname, 'public/mainWindow.html'),
@@ -40,7 +40,7 @@ function appStart(mainMenuTemplate)
 
 function Main() {
     process.env.NODE_ENV = "development";
-    appStart(template.getMenu());
+    appStart(template.getMenu(app));
 }
 
 if (require.main) {

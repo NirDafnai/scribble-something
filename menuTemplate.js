@@ -1,4 +1,4 @@
-function createMenu() 
+function createMenu(app) 
 {
     // Build menu from template
     let mainMenuTemplate = [
@@ -42,8 +42,8 @@ function createMenu()
 
 function exportVars() 
 {
-    module.exports.getMenu = function() {
-        return createMenu();
+    module.exports.getMenu = function(app) {
+        return createMenu(app);
     };
 }
 
