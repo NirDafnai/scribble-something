@@ -9,9 +9,24 @@ body {
 .hello {
     border-radius:50px;
 }
-.circle {
-    height: 25px;
-    width: 25px;
+.innercircle {
+    height: 16px;
+    width: 16px;
     background-color: black;
     border-radius: 50%;
+    position: relative;
+    left: 22px;
+    top: 22px;
+    cursor: ew-resize;
+}
+.outercircle {
+    height: 60px;
+    width: 60px;
+    border: 3px solid grey;
+    border-radius: 50%;
+    display:block;
+    top:600px;
+    left:600px;
+    position: absolute;
+    cursor: ew-resize;
 }

@@ -7,9 +7,10 @@ class Canvas
         this.canvas = document.getElementById('drawingCanvas');
         this.context = this.canvas.getContext("2d");
         this.drawing = false;
-        this.strokeSize = 3;
+        this.strokeSize = 16;
         this.userPos = {x: 0, y: 0};
-        this.strokeButton = document.getElementById('circle1');
+        this.innerCircle = document.getElementById('innercircle');
+        this.outerCircle = document.getElementById('outercircle');
         this.strokeButtonPressed = false;
         this.addListeners();
     }
@@ -18,8 +19,8 @@ class Canvas
         const self = this;
         this.canvas.addEventListener("mousedown", function(event) {
             self.drawing = true;
-            console.log(self.drawing)
             self.setPosition(event);
+            self.draw(event);
         });
         addEventListener("mousemove", function(event) {
             self.draw(event);
@@ -28,36 +29,40 @@ class Canvas
             self.drawing = false;
             self.strokeButtonPressed = false;
         })
-
-        let pos1 = 0;
-
-        this.strokeButton.addEventListener("mousedown", function(event) {
+        this.innerCircle.addEventListener("mousedown", function(event) {
             self.strokeButtonPressed = true;
         });
+        this.outerCircle.addEventListener("mousedown", function(event) {
+            self.strokeButtonPressed = true;
+        });
+        let previousPos = 0;
         addEventListener("mousemove",function(event) {
+            const currentPos = event.pageX
             if (self.strokeButtonPressed) 
             {
-                if(event.pageX > pos1) 
+                if(currentPos > previousPos) 
                 {
-                    if(self.strokeSize < 50)
+                    if(self.strokeSize < 60)
                     {
-                        self.strokeSize += 2.5
-                        self.strokeButton.style.height = `${self.strokeButton.clientHeight + 5}px`;
-                        self.strokeButton.style.width = `${self.strokeButton.clientWidth + 5}px`;
-                        console.log(self.strokeSize)
+                        self.strokeSize += 4;
+                        self.innerCircle.style.height = `${self.innerCircle.clientHeight + 4}px`;
+                        self.innerCircle.style.width = `${self.innerCircle.clientWidth + 4}px`;
+                        self.innerCircle.style.top = `${self.outerCircle.clientHeight/2 - self.strokeSize/2}px`;
+                        self.innerCircle.style.left = `${self.outerCircle.clientHeight/2 - self.strokeSize/2}px`;
                     }
-                    pos1 = event.pageX;
+                    previousPos = currentPos;
                 }
-                else if(event.pageX < pos1)
+                else if(currentPos < previousPos)
                 {
-                    if(self.strokeSize > 3) 
+                    if(self.strokeSize > 4) 
                     {
-                        self.strokeSize -= 2.5
-                        self.strokeButton.style.height = `${self.strokeButton.clientHeight - 5}px`;
-                        self.strokeButton.style.width = `${self.strokeButton.clientWidth - 5}px`;
-                        console.log(self.strokeSize)
+                        self.strokeSize -= 4;
+                        self.innerCircle.style.height = `${self.innerCircle.clientHeight - 4}px`;
+                        self.innerCircle.style.width = `${self.innerCircle.clientWidth - 4}px`;
+                        self.innerCircle.style.top = `${self.outerCircle.clientHeight/2 - self.strokeSize/2}px`;
+                        self.innerCircle.style.left = `${self.outerCircle.clientHeight/2 - self.strokeSize/2}px`;
                     }
-                    pos1 = event.pageX;
+                    previousPos = currentPos;
 
                 }
             }
