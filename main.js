@@ -12,7 +12,8 @@ function appStart(mainMenuTemplate)
     app.on('ready', function() 
     {
         // Create new window
-        mainWindow = new BrowserWindow({width:1024, height:1024});
+        mainWindow = new BrowserWindow({width:825, height:825});
+        mainWindow.setMinimumSize(850, 850)
         // Load html into window
         mainWindow.loadURL(url.format({
             pathname: path.join(__dirname, 'public/mainWindow.html'),

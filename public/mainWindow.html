@@ -5,10 +5,26 @@
     <title>Scribble Something</title>
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" title="no title" charset="utf-8">
 </head>
-<body>
-    <h1>Scribble Something</h1>
-    <canvas id="drawingCanvas" width="500" height="500"></canvas>    
-    <div class="outercircle" id="outercircle"><div class="innercircle" id="innercircle"></div></div>
+<body>    
+    <h1 id="title">Scribble Something</h1>
+    <div id="parent">
+        <canvas id="drawingCanvas" width="600" height="600"></canvas>
+        <div id="toolbox">
+            <h3 id ="strokeSizeTitle">Stroke Size:</h3>
+            <div id="outercircle" title="Drag left or right to resize"><div id="innercircle"></div></div>
+            <h3 id ="colorTitle">Colors:</h3>
+            <div id="colors">
+                <div id="white" class="colors"></div>
+                <div id="black" class="colors"></div>
+                <div id="red" class="colors"></div>
+                <div id="yellow" class="colors"></div>
+                <div id="blue" class="colors"></div>
+                <div id="green" class="colors"></div>
+            </div>
+        </div>
+    </div>
+    <img id="trashcan" src="img/trash.png"/>
+
 </body>
 <script src="js/mainWindow.js"></script>
 </html>

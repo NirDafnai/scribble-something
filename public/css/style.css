@@ -1,15 +1,41 @@
-canvas {
-    border:0.5px solid black;
-    border-radius: 15%;
-    cursor: url(../img/cursor.png), crosshair;
-}
 body {
     user-select: none;
+    background: #3e474e;
+    font-family: sans-serif;
 }
-.hello {
-    border-radius:50px;
+#title {
+    color: white;
+    text-align: center;
+    display: block;
 }
-.innercircle {
+#strokeSizeTitle {
+    margin:5px auto;
+    font-size: 15px;
+}
+
+#parent {
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    flex-flow: row wrap;
+}
+#drawingCanvas {
+    background:white;
+    border-radius: 10px;
+    cursor: url(../img/cursor.png), crosshair;
+}
+#toolbox {
+    background-color:rgb(182, 182, 182);
+    width:100px;
+    height:600px;
+    border-radius: 5px;
+    margin-left: 5px;
+}
+
+#innercircle {
     height: 16px;
     width: 16px;
     background-color: black;
@@ -19,14 +45,78 @@ body {
     top: 22px;
     cursor: ew-resize;
 }
-.outercircle {
+#outercircle {
     height: 60px;
     width: 60px;
-    border: 3px solid grey;
+    border: 3px solid white;
     border-radius: 50%;
     display:block;
     top:600px;
     left:600px;
-    position: absolute;
     cursor: ew-resize;
+    margin: 5px auto;
+}
+#trashcan {
+    cursor: pointer;
+    position: relative;
+    display: flex;
+}
+#white {
+    height: 45px;
+    width: 45px;
+    background-color: #FFFF;
+    border-radius: 100%;
+    margin: auto;
+    border: 3px solid black;
+    cursor: default;
+}
+#black {
+    height: 45px;
+    width: 45px;
+    background-color: black;
+    border-radius: 100%;
+    margin: auto;
+    margin-top: 5px;
+    border: 3px solid black;
+    cursor: pointer;
+}
+#red {
+    height: 45px;
+    width: 45px;
+    background-color: #fc4c4f;
+    border-radius: 100%;
+    margin: auto;
+    margin-top: 5px;
+    border: 3px solid #fc4c4f;
+    cursor: pointer;
+}
+#yellow {
+    height: 45px;
+    width: 45px;
+    background-color: #ECD13F;
+    border-radius: 100%;
+    margin: auto;
+    margin-top: 5px;
+    border: 3px solid #ECD13F;
+    cursor: pointer;
+}
+#blue {
+    height: 45px;
+    width: 45px;
+    background-color: #4fa3fc;
+    border-radius: 100%;
+    margin: auto;
+    margin-top: 5px;
+    border: 3px solid #4fa3fc;
+    cursor: pointer;
+}
+#green {
+    height: 45px;
+    width: 45px;
+    background-color: #71f13e;
+    border-radius: 100%;
+    margin: auto;
+    margin-top: 5px;
+    border: 3px solid #71f13e;
+    cursor: pointer;
 }
