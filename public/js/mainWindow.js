@@ -14,7 +14,10 @@ class Canvas
         this.outerCircle = document.getElementById('outercircle');
         this.emptyButton = document.getElementById('trashcan');
         this.colorButtons = document.querySelectorAll('.colors')
+        this.paintBucket = document.getElementById('paintbucket')
         this.strokeButtonPressed = false;
+        this.rightClickPressed = false;
+        this.paintBucketPressed = false;
         this.addListeners();
     }
     addListeners() 
@@ -26,9 +29,16 @@ class Canvas
             })
         })
         this.canvas.addEventListener("mousedown", function(event) {
-            self.drawing = true;
-            self.setPosition(event);
-            self.draw(event);
+            if (self.paintBucketPressed) {
+                const {mouseX, mouseY} = self.getMouseCoordinates(event, self.canvas);
+                self.fill(mouseX, mouseY, self.getPixelColor(mouseX, mouseY));
+            }
+            else {
+                self.drawing = true;
+                self.setPosition(event);
+                self.draw(event);
+            }
+
         });
         addEventListener("mousemove", function(event) {
             self.draw(event);
@@ -36,7 +46,13 @@ class Canvas
         addEventListener("mouseup", function(event) {
             self.drawing = false;
             self.strokeButtonPressed = false;
-            self.canvas.style.cursor = `url('img/cursor.png'), crosshair`
+            if (self.rightClickPressed) {
+                self.canvas.style.cursor = `url('img/cursor.png'), crosshair`
+                self.rightClickPressed = false;
+            }
+
+        })
+        this.canvas.addEventListener("mouseup", function(event) {
         })
         this.emptyButton.addEventListener("mousedown", function(event) {
             self.context.clearRect(0, 0, self.canvas.width, self.canvas.height);
@@ -48,7 +64,7 @@ class Canvas
             self.strokeButtonPressed = true;
         });
         let previousPos = 0;
-        addEventListener("mousemove",function(event) {
+        addEventListener("mousemove", function(event) {
             const currentPos = event.pageX
             if (self.strokeButtonPressed) 
             {
@@ -79,6 +95,20 @@ class Canvas
                 }
             }
         });
+        this.paintBucket.addEventListener("mousedown", function(event) {
+            if(!self.paintBucketPressed) 
+            {            
+                self.paintBucket.style.border = "3px solid white"
+                self.canvas.style.cursor = `url('img/paintbucketicon.png'), crosshair`
+                self.paintBucketPressed = true;
+            }
+            else {
+                self.paintBucket.style.border = "3px solid transparent"
+                self.canvas.style.cursor = `url('img/cursor.png'), crosshair`
+                self.paintBucketPressed = false;
+            }
+
+        });
 
     }
     getMouseCoordinates(event, canvas) {
@@ -86,15 +116,38 @@ class Canvas
         const mouseY = event.pageY - canvas.offsetTop;
         return {mouseX, mouseY};
     }
-    getPixelColor(x, y, context) {
-        rgb = context.getImageData(x, y, 1, 1).data;
+    getPixelColor(x, y) {
+        const rgb = this.context.getImageData(x, y, 1, 1).data;
         return [rgb[0], rgb[1], rgb[2]] // R G B
     }
+    paintPixel(pixel) {
+        pixel.data[0] = 200;
+        pixel.data[1] = 200;
+        pixel.data[2] = 200;
+    }
+    fill (mouseX, mouseY, startColor) {
+        /*
+        pixel.data[0] = 255;
+        pixel.data[1] = 255;
+        pixel.data[2] = 255;
+        this.context.putImageData(pixel, mouseX, mouseY)
+        */
+       console.log(this.getPixelColor(mouseX, mouseY) == startColor)
+        if(this.getPixelColor(mouseX, mouseY) === startColor) {
+            const pixel = this.context.getImageData(mouseX, mouseY, this.canvas.width, this.canvas.height)
+            this.paintPixel(pixel);
+            this.context.putImageData(pixel, mouseX, mouseY)
+            this.fill(mouseX+1, mouseY, startColor)
+            this.fill(mouseX, mouseY+1, startColor)
+            this.fill(mouseX, mouseY-1, startColor)
+            this.fill(mouseX-1, mouseY, startColor)
+        }
+    }
     draw(event) {
-        console.log(event.which)
         if (event.which === 3) {
             if (!this.drawing) return;
             this.canvas.style.cursor = `url('img/erasercursor.png'), crosshair`
+            this.rightClickPressed = true;
             this.context.beginPath();
             this.context.lineWidth = this.strokeSize; // width of line
             this.context.strokeStyle = "white" // color of line
@@ -140,10 +193,6 @@ class Canvas
         }
         colorButton.style.cursor = "default";
         self.color = getStyle(colorButton, "background-color")
-    }
-    fill(x, y, color) 
-    {
-        
     }
 }
 function getStyle(x, styleProp)

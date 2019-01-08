@@ -120,3 +120,9 @@ body {
     border: 3px solid #71f13e;
     cursor: pointer;
 }
+#paintbucket {
+    margin: auto;
+    margin-top: 5px;
+    cursor: pointer;
+    border: 3px solid transparent;
+}
