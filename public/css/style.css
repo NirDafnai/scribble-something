@@ -1,38 +1,119 @@
-body {
+body 
+{
+    background-color: #3e474e;
+    justify-content: center;
+    align-items: center;
     user-select: none;
-    background: #3e474e;
-    font-family: sans-serif;
-}
-#title {
-    color: white;
-    text-align: center;
-    display: block;
-}
-#strokeSizeTitle {
-    margin:5px auto;
-    font-size: 15px;
 }
 
+
+#title 
+{
+    color: white;
+    text-align: center;
+    font-family: sans-serif;
+}
+
+
 #parent {
+    text-align: center;
+
+}
+
+
+#playerList 
+{
+    width: 175px;
+    height: 600px;
+    background-color: white;
+    border-radius: 15px;
+    display: inline-block;
     margin: 0 auto;
-    text-align: center;
-    display: flex;
-    text-align: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    flex-flow: row wrap;
+    margin-right: 5px;
 }
-#drawingCanvas {
-    background:white;
-    border-radius: 10px;
-    cursor: url(../img/cursor.png), crosshair;
+
+
+#drawingCanvas 
+{
+    width: 600px;
+    height: 600px;
+    border-radius: 15px;
+    display: inline-block;
+    margin: 0 auto;
+    background: white;
+    cursor: url('../img/cursor.png'), crosshair;
 }
-#toolbox {
-    background-color:rgb(182, 182, 182);
-    width:100px;
-    height:600px;
-    border-radius: 5px;
+
+
+#workspace 
+{
+    list-style-type: none;
+    margin: 0 auto;
+    padding: 0;
+}
+#workitems 
+{
+    display: inline-block;
+    padding: 1px;
+}
+
+#chat 
+{
+    width: 300px;
+    height: 600px;
+    background-color: white;
+    border-radius: 15px;
+    display: inline-block;
+    margin: 0 auto;
     margin-left: 5px;
+}
+
+
+#inputBox {
+    float: left;
+    margin-top: 565px;
+    margin-left: 5px;
+    width: 285px;
+}
+
+
+#toolBox
+{
+    width: 720px;
+    height: 100px;
+    background-color: #a8a8a8;
+    border-radius: 10px;
+    margin: 0 auto;
+    margin-top: 2px;
+}
+
+#colors 
+{
+    list-style-type: none;
+    margin: 0 auto;
+    padding: 0;
+    padding-top: 15px;
+    padding-left: 2px;
+}
+#colors_li
+{
+    float: left;
+    display: block;
+    padding: 1px;
+}
+
+#tools 
+{
+    list-style-type: none;
+    margin: 0 auto;
+    padding: 0;
+    padding-left: 2px;
+}
+#tools_li
+{
+    float: left;
+    display: block;
+    padding: 1px;
 }
 
 #innercircle {
@@ -45,6 +126,8 @@ body {
     top: 22px;
     cursor: ew-resize;
 }
+
+
 #outercircle {
     height: 60px;
     width: 60px;
@@ -54,75 +137,106 @@ body {
     top:600px;
     left:600px;
     cursor: ew-resize;
-    margin: 5px auto;
+    float: left;
+    margin-left: 10px;
 }
-#trashcan {
+
+#paintbucket 
+{
+    margin-left: 15px;
     cursor: pointer;
-    position: relative;
-    display: flex;
+    border: 3px solid transparent;
 }
-#white {
+#eraser 
+{
+    cursor: pointer;
+}
+#trashcan 
+{
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+#white_color {
     height: 45px;
     width: 45px;
     background-color: #FFFF;
     border-radius: 100%;
-    margin: auto;
-    border: 3px solid black;
-    cursor: default;
+    margin-bottom: 15px;
+    margin-left: 5px;
+    border: 3px solid #FFFF;
+    cursor: pointer;
 }
-#black {
+#black_color {
     height: 45px;
     width: 45px;
     background-color: black;
     border-radius: 100%;
     margin: auto;
-    margin-top: 5px;
-    border: 3px solid black;
-    cursor: pointer;
+    margin-bottom: 15px;
+    margin-left: 5px;
+    border: 3px solid #FFFF;
+    cursor: default;
 }
-#red {
+#red_color {
     height: 45px;
     width: 45px;
     background-color: #fc4c4f;
     border-radius: 100%;
     margin: auto;
-    margin-top: 5px;
+    margin-bottom: 15px;
+    margin-left: 5px;
     border: 3px solid #fc4c4f;
     cursor: pointer;
 }
-#yellow {
+#yellow_color {
     height: 45px;
     width: 45px;
     background-color: #ECD13F;
     border-radius: 100%;
     margin: auto;
-    margin-top: 5px;
+    margin-bottom: 15px;
+    margin-left: 5px;
     border: 3px solid #ECD13F;
     cursor: pointer;
 }
-#blue {
+#blue_color {
     height: 45px;
     width: 45px;
     background-color: #4fa3fc;
     border-radius: 100%;
     margin: auto;
-    margin-top: 5px;
+    margin-bottom: 15px;
+    margin-left: 5px;
     border: 3px solid #4fa3fc;
     cursor: pointer;
 }
-#green {
+#green_color {
     height: 45px;
     width: 45px;
     background-color: #71f13e;
     border-radius: 100%;
     margin: auto;
-    margin-top: 5px;
+    margin-bottom: 15px;
+    margin-left: 5px;
     border: 3px solid #71f13e;
     cursor: pointer;
 }
-#paintbucket {
+#custom_color {
+    height: 45px;
+    width: 45px;
+    background-color: #b83ef1;
+    border-radius: 100%;
     margin: auto;
-    margin-top: 5px;
+    margin-bottom: 15px;
+    margin-left: 5px;
+    border: 3px solid #b83ef1;
     cursor: pointer;
-    border: 3px solid transparent;
+    font-size: 0;
+}
+#edit
+{
+    margin: 0 auto;
+    margin-top: 12px;
+    background-color: #b83ef1;
 }

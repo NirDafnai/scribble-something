@@ -18,4 +18,4 @@ npm start
 ```
 ## Example Image
 
-![Screenshot](https://user-images.githubusercontent.com/1783640/50042766-a967cc80-0070-11e9-8b13-7145d60be6e8.png)
+![Screenshot](https://user-images.githubusercontent.com/1783640/52285429-f8462a00-296e-11e9-9014-d5b4b523af86.png)

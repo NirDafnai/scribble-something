@@ -4,28 +4,43 @@
     <meta charset="UTF-8">
     <title>Scribble Something</title>
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <script src="js/libraries/jscolor.js"></script>
+    <script src="js/libraries/lz-string.js"></script>
 </head>
 <body>    
     <h1 id="title">Scribble Something</h1>
     <div id="parent">
-        <canvas id="drawingCanvas" width="600" height="600"></canvas>
-        <div id="toolbox">
-            <h3 id ="strokeSizeTitle">Stroke Size:</h3>
-            <div id="outercircle" title="Drag left or right to resize"><div id="innercircle"></div></div>
-            <h3 id ="colorTitle">Colors:</h3>
-            <div id="colors">
-                <div id="white" class="colors"></div>
-                <div id="black" class="colors"></div>
-                <div id="red" class="colors"></div>
-                <div id="yellow" class="colors"></div>
-                <div id="green" class="colors"></div>
-                <div id="blue" class="colors"></div>
-                <img id="paintbucket" src="img/paintbucket.png"/>
-            </div>
-        </div>
-    </div>
-    <img id="trashcan" src="img/trash.png"/>
+        <ul id="workspace">
+        <li id="workitems"><div id="playerList" ></div></li>
+        <li id="workitems"><canvas id="drawingCanvas" width="600" height="600"></canvas></li>
+       
 
+        
+        <li id="workitems"><div id="chat" >
+                <input type="text" id="inputBox" placeholder="Enter your guess here"> </input>
+        </div></li>
+        <div id="toolBox">
+                <ul id="colors">
+                    <li id ="colors_li"><h3 id ="colorTitle">Colors:</h3>
+                        <li id ="colors_li"><div id="white_color" class="colors"></div></li>
+                        <li id ="colors_li"><div id="black_color" class="colors"></div></li>
+                        <li id ="colors_li"><div id="red_color" class="colors"></div></li>
+                        <li id ="colors_li"><div id="yellow_color" class="colors"></div></li>
+                        <li id ="colors_li"><div id="blue_color" class="colors"></div></li>
+                        <li id ="colors_li"><div id="green_color" class="colors"></div></li>
+                        <li id ="colors_li"><div id="custom_color" class="colors"><img id="edit" class="jscolor" src="img/edit.png" value="FF0000"/></div></li>
+                    </li>
+                </ul>
+                <ul id="tools">
+                    <li id="tools_li"><div id="outercircle" title="Drag left or right to resize"><div id="innercircle"></div></div></li>
+                    <!--<li id="tools_li"><img id="eraser" src="img/eraser.png"/></li>-->
+                    <li id="tools_li"><img id="paintbucket" src="img/paintbucket.png"/></li>
+                    <li id="tools_li"><img id="trashcan" src="img/trash.png"/></li>
+                </ul>
+            </div>
+    </ul>
+
+    </div>
 </body>
 <script src="js/mainWindow.js"></script>
 </html>

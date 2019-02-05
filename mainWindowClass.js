@@ -1,23 +1,10 @@
 const electron = require('electron');
-const url = require('url');
-const path = require('path');
-const template = require('./menuTemplate')
-const {app, BrowserWindow, Menu, ipcMain} = electron;
-const net = require('net');
-
-function appStart(mainMenuTemplate) 
+class mainWindow 
 {
-    /**
-        * Sets the properties of the app and adds listeners to app events.
-        * @param {Array} mainMenuTemplate Contains an object for each sub-menu, e.g. 'File', 'Edit' and so forth.
-    */
-
-    let mainWindow;
-    // Listen for app to be ready
-    app.on('ready', () => 
+    constructor(client) 
     {
-        // Create new window
-        mainWindow = new BrowserWindow(
+        this.client = client;
+        this.Window = new BrowserWindow(
             {
             width:1150, 
             height:860,
@@ -30,8 +17,12 @@ function appStart(mainMenuTemplate)
             }
         }
         );
-        mainWindow.setMinimumSize(1150, 900);
-        
+
+    }
+    applySettingsAndListeners() 
+    {
+        this.Window.setMinimumSize(1150, 900);
+
         mainWindow.on('ready-to-show', () => 
         { 
           mainWindow.show(); 
@@ -52,8 +43,6 @@ function appStart(mainMenuTemplate)
         }
         );
 
-        const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-        Menu.setApplicationMenu(mainMenu);
         
         ipcMain.on('newMouseCoordinates', (event, data) => 
         {
@@ -134,38 +123,8 @@ function appStart(mainMenuTemplate)
 
         }
         );
-
     }
-    );
+
 }
 
-let client;
-function Main() 
-{
-    process.env.NODE_ENV = "development";
-    process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
-    client = new net.Socket();
-    client.connect(8820, '127.0.0.1', () =>
-    {
-        console.log('Connected');
-    }
-    );
-    appStart(template.getMenu(app));
-}
-
-if (require.main) // if __name__ == "__main__"
-{
-    Main();
-}
-
-
-
-
-
-
-
-
-
-
-
-
+module.exports = mainWindow;
