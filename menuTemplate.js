@@ -18,7 +18,7 @@ function createMenu(app)
     // Add developer tools item if not in prod
     if(process.env.NODE_ENV !== 'production') {
         mainMenuTemplate.push({
-            label: 'Developer Tools',
+            label: 'Tools',
             submenu: [
                 {
                     label: 'Toggle Developer Tools',

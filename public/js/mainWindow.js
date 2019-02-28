@@ -48,7 +48,7 @@ class Canvas
                     y: mouseY,
                     color: this.color
                 };
-                ipcRenderer.send('fill', JSON.stringify(data));
+                ipcRenderer.send('sendData', 'fill&' + JSON.stringify(data));
                 this.fill(mouseX, mouseY, this.color, this.getPixelColor(mouseX, mouseY));
             }
             else 
@@ -63,7 +63,7 @@ class Canvas
                     color: this.color,
                     stroke: this.strokeSize
                 };
-                ipcRenderer.send('newMouseCoordinates', JSON.stringify(data));
+                ipcRenderer.send('sendData', "new&" + JSON.stringify(data));
             }
 
         }
@@ -86,7 +86,7 @@ class Canvas
                     color: this.color,
                     stroke: this.strokeSize
                 };
-                ipcRenderer.send('moveMouseCoordinates', JSON.stringify(data));
+                ipcRenderer.send('sendData', "move&" + JSON.stringify(data));
             }
 
         }
@@ -111,7 +111,7 @@ class Canvas
         emptyButton.addEventListener("mousedown", () =>
         {
             this.clearCanvas();
-            ipcRenderer.send('clearCanvas');
+            ipcRenderer.send('sendData', 'clearCanvas');
         }
         );
 
@@ -184,17 +184,20 @@ class Canvas
             this.fill(data.x, data.y, data.color, this.getPixelColor(data.x, data.y));
         }
         );
-        ipcRenderer.on('send_board', (event) => 
+        ipcRenderer.on('send_canvas', (event) => 
         {
-            ipcRenderer.send('board', this.canvas.toDataURL());
+            ipcRenderer.send('sendData', 'canvas&' + this.canvas.toDataURL());
         }
         );
         ipcRenderer.send("readytoget")
-        ipcRenderer.on('board', (event, data) => 
+        console.log("readytoget")
+        ipcRenderer.on('canvas', (event) => 
         {
-            data = remote.getGlobal('myObject');
+            console.log("setting canvas")
+            let data = remote.getGlobal('myObject');
             var img = new Image();
             img.src = data;
+            console.log(data)
             img.onload = () => {
                 this.context.drawImage(img, 0, 0);
               };       
@@ -225,7 +228,6 @@ class Canvas
         /**
          * Gets the mouse coordinates of the app and calculates them in relation to the canvas.
             * @param {MouseEvent} event Holds the mouse coordinates.
-            * @param {HTMLElement} canvas Reference to the html canvas.
             * 
             * @returns {Object} containing the new mouseX and mouseY.
         */
@@ -467,7 +469,7 @@ function stringRGBtoArray(rgb)
         * 
         * @returns {Array} containing the RGBA values.
     */
-
+    console.log(rgb)
     if (rgb instanceof Array) return rgb
     else if (rgb == "white")
     {
@@ -479,11 +481,13 @@ function stringRGBtoArray(rgb)
     }
     else
     {
-        rgb = rgb.substring(4, rgb.length-1).replace(/ /g, '').split(',');
+        rgb = rgb.substring(rgb.indexOf("(") + 1, rgb.indexOf(")")).split(',');
+        console.log(rgb)
         rgb[0] = parseInt(rgb[0]);
         rgb[1] = parseInt(rgb[1]);
         rgb[2] = parseInt(rgb[2]);
         rgb[3] = 255;
+        console.log(rgb)
         return rgb;
     }
 

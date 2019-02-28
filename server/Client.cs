@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.IO;
 namespace ScribbleServer
 {
-    class Client
+    struct Client
     {
         public TcpClient socket { get; }
         public StreamReader readStream { get; }

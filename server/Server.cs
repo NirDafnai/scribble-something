@@ -8,17 +8,26 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using EmailValidation;
+
 namespace ScribbleServer
 {
     class Server
     {
+        /// <summary>
+        /// Server Class, responsible for handling clients and sending/receiving data.
+        /// </summary>
         private static Thread server;
-        public const int Port = 8820;
+        private const int Port = 8820;
         private static TcpListener serverSocket = new TcpListener(IPAddress.Any, Port);
         private static bool online;
-        public static List<Client> Users = new List<Client>();
+        private static List<Client> Clients = new List<Client>();
+        private static List<User> Users = SqlManager.LoadUsers();
         static void Main()
         {
+            /*
+             The main function that starts the GUI and runs the server thread. 
+            */
             //Application.EnableVisualStyles();
             //Application.SetCompatibleTextRenderingDefault(false);
             server = new Thread(HandleClients);
@@ -28,6 +37,9 @@ namespace ScribbleServer
         }
         static void HandleClients()
         {
+            /*
+             * Main function for clients, accepts new clients, receives their data and sends data accordingly.
+             */
             online = true;
             serverSocket.Start();
             TcpClient client;
@@ -45,25 +57,36 @@ namespace ScribbleServer
                         writeStream.AutoFlush = true;
                     }
                     Client c = new Client(client, readStream, writeStream);
-                    Users.Add(c);
+                    Clients.Add(c);
                     Console.WriteLine("New client: " + c.ip + ":" + c.port);
-                    if(Users.Count() > 1)
+                    if(Clients.Count() > 1)
                     {
-                        Users[0].writeStream.WriteLine("send_board");
-                        string data = Users[0].readStream.ReadLine();
-                        while (data.Length > 1024)
+                        Clients[0].writeStream.WriteLine("send_canvas");
+                        string data = Clients[0].readStream.ReadLine();
+                        string[] data1 = data.Split('&');
+                        if (data1[0] == "canvas")
                         {
-                            c.writeStream.WriteLine("dataparts&"+ data.Substring(0, 1024));
+                            var modified_data = new List<String>();
+                            modified_data = data1.ToList();
+                            modified_data.RemoveAt(0);
+                            data1 = modified_data.ToArray();
+                            data = string.Join("", data1);
+                            while (data.Length > 1024)
+                            {
+                                c.writeStream.WriteLine("dataparts&" + data.Substring(0, 1024));
+                                c.readStream.ReadLine(); 
+                                data = data.Substring(1024);
+                            }
+                            c.writeStream.WriteLine("dataparts&" + data);
                             c.readStream.ReadLine();
-                            data = data.Substring(1024);
+                            c.writeStream.WriteLine("end");
                         }
-                        c.writeStream.WriteLine("dataparts&" + data);
-                        c.readStream.ReadLine();
-                        c.writeStream.WriteLine("end");
                     }
+                        
+
                 }
-                List<Client> disconnectedUsers = new List<Client>();
-                foreach (var user in Users)
+                List<Client> disconnectedClients = new List<Client>();
+                foreach (var user in Clients)
                 {
                     try
                     {
@@ -72,35 +95,109 @@ namespace ScribbleServer
                             byte[] checkConn = new byte[1];
                             if (user.socket.Client.Receive(checkConn, SocketFlags.Peek) == 0)
                             {
-                                disconnectedUsers.Add(user);
+                                disconnectedClients.Add(user);
                             }
                             else
                             {
                                 string data = user.readStream.ReadLine();
-                                foreach (var writeUser in Users)
+                                string[] processedData = data.Split('&');
+                                if (processedData[0] == "signup")
                                 {
-                                    if (writeUser != user)
+                                    string invalidParameters = "params&";
+                                    User newUser = new User(processedData[1], processedData[2], processedData[3]);
+                                    if (!EmailValidator.Validate(newUser.email))
                                     {
-                                        writeUser.writeStream.WriteLine(data);
+                                        invalidParameters += "invalid_email&";
+                                    }
+                                    foreach (User userToCheck in Users)
+                                    {
+                                        if (userToCheck.email == newUser.email)
+                                        {
+                                            invalidParameters += "used_email&";
+                                        }
+                                        if (userToCheck.username == newUser.username)
+                                        {
+                                            invalidParameters += "used_username&";
+                                        }
+                                    }
+                                    if (invalidParameters == "params&")
+                                    {
+                                        Users.Add(newUser);
+                                        SqlManager.SaveUser(newUser);
+                                        user.writeStream.WriteLine("signed_up");
+                                    }
+                                    else
+                                    {
+                                        invalidParameters = invalidParameters.Remove(invalidParameters.Length - 1);
+                                        user.writeStream.WriteLine("errorsigningup" + "&" + invalidParameters);
+                                    }
+                                    /*
+                                    foreach (var writeUser in Clients)
+                                    {
+                                        if (writeUser != user)
+                                        {
+                                            writeUser.writeStream.WriteLine(data);
+                                        }
+                                    }
+                                    */
+                                }
+                                else if (processedData[0] == "login")
+                                {
+                                    if(ValidateLoginDetails(processedData[1], processedData[2]))
+                                    {
+                                        user.writeStream.WriteLine("successfulLogin");
+                                    }
+                                    else
+                                    {
+                                        user.writeStream.WriteLine("unsucessfulLogin");
+                                    }
+                                }
+                                else
+                                {
+                                    foreach (Client writeUser in Clients)
+                                    {
+                                        if (!writeUser.Equals( user))
+                                        {
+                                            writeUser.writeStream.WriteLine(data);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        disconnectedUsers.Add(user);
+                        Console.WriteLine(e.ToString());
+                        disconnectedClients.Add(user);
                     }
 
                 }
-                foreach (var disconnectedUser in disconnectedUsers)
+                foreach (var disconnectedUser in disconnectedClients)
                 {
-                    Users.Remove(disconnectedUser);
+                    Clients.Remove(disconnectedUser);
                     Console.WriteLine("Client disconnected: " + disconnectedUser.ip + ":" + disconnectedUser.port);
                 }
 
             }
 
+        }
+
+        static bool ValidateLoginDetails(string username, string password)
+        {
+            /// <summary>
+            /// Gets the login details and validates that they exist in the database.
+            /// </summary>
+            /// <param name="username">String of the username</param>
+            /// <param name="password">String of the password</param>
+            /// <returns>Bool true if user credentials are correct and false otherwise.</returns>
+            foreach (User userToCheck in Users)
+            {
+                if (userToCheck.username == username && userToCheck.password == password)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

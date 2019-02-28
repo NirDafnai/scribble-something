@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scribble Something</title>
+    <link rel="stylesheet" href="css/signupWindowStyle.css" type="text/css" media="screen" title="no title" charset="utf-8">
+</head>
+<body>
+    <a id="backb" class="back-button"><img id="backimg" src="img/back.png"/><h3 id="back-label">Back</h3></a>
+    <h1 id="title">Sign-Up</h1>
+    <div id="form">
+        <div class="userinput">
+            <label for="usernameinput" id="username-label">Username:</label>
+            <input id="usernameinput" type="text" pattern="[a-zA-Z0-9!#$%^*_.]" maxlength="24"/>
+            <img src="img/loginWindow/x.png" class="images" id ="img1"/>
+        </div>
+        <h3 class="errors" id="1">PLACEHOLDER TEXT </h3>
+        <div class="userinput">
+            <label for="emailinput" id="email-label">E-mail:</label>
+            <input id="emailinput" type="text" pattern="[a-zA-Z0-9!@#$%^*_]"/>
+            <img src="img/loginWindow/x.png" class="images" id ="img2"/>
+        </div>
+        <h3 class="errors" id="2">PLACEHOLDER TEXT </h3>
+        <div class="userinput">
+                <label for="passwordinput" id="password-label">Password:</label>
+                <input id="passwordinput" type="password" pattern="[a-zA-Z0-9!@#$%^*]">
+                <img src="img/loginWindow/x.png" class="images" id ="img3"/>
+                </input>
+        </div>
+        <h3 class="errors" id="3">PLACEHOLDER TEXT </h3>
+        <div class="userinput">
+            <label for="confirmpasswordinput" id="confirmpassword-label">Confirm Password:</label>
+            <input id="confirmpasswordinput" type="password" pattern="[a-zA-Z0-9!@#$%^*_]"/>
+            <img src="img/loginWindow/x.png" class="images" id="img4"/>
+        </div>
+        <h3 class="errors" id="4">PLACEHOLDER TEXT</h3>
+        <div id="buttons">
+            <a href="#" id="sign-up" class="signup-button"><img id="signupimg" src="img/loginWindow/signup.png"/><h3 id="signup-label">Sign-up</h3></a>
+        </div>
+    </div>
+
+</body>
+<script src="js/signupWindow.js"></script>
+<script>
+        const a = new signupWindow();
+</script>
+</html>

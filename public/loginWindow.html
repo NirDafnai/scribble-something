@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scribble Something</title>
+
+    <link rel="stylesheet" href="css/loginWindowStyle.css" type="text/css" media="screen" title="no title" charset="utf-8">
+</head>
+<body>    
+    <h1 id="title">Scribble Something</h1>
+    <div id="form">
+        <div id="username">
+            <label for="usernameinput" id="username-label">Username:</label>
+            <input id="usernameinput" type="text"/>
+        </div>
+        <div id="password">
+                <label for="passwordinput" id="password-label">Password:</label>
+                <input id="passwordinput" type="password"/>
+        </div>
+        <div id="buttons">
+            <a href="#" id="login" class="login-button"><img id="loginimg" src="img/loginWindow/login.png"/><h3 id="login-label">Log-in</h3></a>
+            <a href="#" id="sign-up" class="signup-button"><img id="signupimg" src="img/loginWindow/signup.png"/><h3 id="signup-label">Sign-up</h3></a>
+        </div>
+    </div>
+
+</body>
+<script src="js/loginWindow.js"></script>
+<script>
+    const a = new loginWindow();
+</script>
+</html>
