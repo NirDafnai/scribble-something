@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Scribble Something</title>
-
     <link rel="stylesheet" href="css/menuWindowStyle.css" type="text/css" media="screen" title="no title" charset="utf-8">
 </head>
 <body>
+    <div id="titlegroup">
+        <h3 id="pre-title">Welcome, </h3> <h3 id="title"></h3>
+    </div>
     <div id="buttons">
-        <a href="#" class="button" ><h3 id="newGame-label">Create New Game</h3></a>
-        <a href="#" class="button" ><h3 id="newGame-label">Find A Game</h3></a>
+        <a href="#" class="button" id="creategamebutton" ><h3 id="newGame-label">Create New Game</h3></a>
+        <a href="#" class="button" id="joingamebutton" ><h3 id="newGame-label">Find A Game</h3></a>
     </div>
 </body>
+<script src="js/menuWindow.js"></script>
+<script>
+    const a = new menuWindow();
+</script>
 </html>

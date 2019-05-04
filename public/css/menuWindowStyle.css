@@ -41,3 +41,44 @@ body
     position:relative;
 	top:1px;
 }
+#titlegroup 
+{
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+}
+#pre-title 
+{
+    color: white;
+    font-family: sans-serif;
+    text-align: center;
+    font-size: 25px;
+    white-space: nowrap;
+    display: inline;
+}
+#title 
+{
+    font-family: sans-serif;
+    text-align: center;
+    font-size: 25px;
+    white-space: nowrap;
+    animation: textAnimate 5s linear infinite alternate;
+    background: -webkit-linear-gradient( 92deg, #95d7e3, #eb76ff );
+    background-size:600vw 600vw;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline;
+
+}
+@keyframes textAnimate {
+    from {
+      filter: hue-rotate(0deg);
+      background-position-x: 0%;
+      
+    }
+    to {
+      filter: hue-rotate(360deg);
+      background-position-x: 600vw;
+      
+    }
+  }
