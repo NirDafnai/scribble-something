@@ -8,13 +8,16 @@ using System.Net.Sockets;
 using System.IO;
 namespace ScribbleServer
 {
-    struct Client
+    class Client
     {
         public TcpClient socket { get; }
         public StreamReader readStream { get; }
         public StreamWriter writeStream { get; }
         public string ip { get; }
         public string port { get; }
+        public string username = "null";
+        public int score = 0;
+        public bool drawer;
         public Client(TcpClient _socket, StreamReader _readStream, StreamWriter _writeStream)
         {
             this.socket = _socket;

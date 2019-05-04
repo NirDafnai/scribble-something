@@ -16,9 +16,9 @@ class signupWindow
         /**
             * Hooks listeners to the window's elements and IPC communication. 
         */
-        let invalid_characters = "'%\\_/";
+        let invalid_characters = "'%\\_/&";
         invalid_characters +='"';
-        let fields = [this.usernameField, this.emailField, this.passwordField]
+        let fields = [this.usernameField, this.emailField, this.passwordField, this.confirmPasswordField]
         fields.forEach(field => 
         {
             field.addEventListener("keypress", (event) => 
@@ -28,7 +28,7 @@ class signupWindow
                     if (invalid_characters.includes(event.key)) 
                     {
                         event.preventDefault();
-                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / " + '"');
+                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / & " + '"');
                     }
                 }
 
@@ -43,7 +43,7 @@ class signupWindow
                     if (invalid_characters.includes(data[i]))
                     {
                         event.preventDefault();
-                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / " + '"');
+                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / &" + '"');
                         break;
                     }
                 }
@@ -59,7 +59,6 @@ class signupWindow
         );
         ipcRenderer.on("invalidFields", (event, data) => 
         {
-            console.log(data)
             if (data.includes("invalid_email")) 
             {
                 const errortext = document.getElementById("2");
@@ -84,7 +83,6 @@ class signupWindow
         }
         );
         const signupButton = document.getElementById("sign-up");
-        console.log(signupButton)
         signupButton.addEventListener("mousedown", () => 
         {
             let valid = true;
@@ -151,7 +149,7 @@ class signupWindow
         const backButton = document.getElementById("backb");
         backButton.addEventListener("mousedown", () => 
         {
-            ipcRenderer.send('backPressed');
+            ipcRenderer.send('backPressedSignup');
         }
         );
     }

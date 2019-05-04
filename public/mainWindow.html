@@ -6,19 +6,48 @@
     <link rel="stylesheet" href="css/mainWindowStyle.css" type="text/css" media="screen" title="no title" charset="utf-8">
     <script src="js/libraries/jscolor.js"></script>
     <script src="js/libraries/lz-string.js"></script>
+    
 </head>
-<body>    
-    <h1 id="title">Scribble Something</h1>
+<body>
+    <div id="labels">
+            <h4 id="rounds">Round 1/3</h4>
+            <h3 id="timer">Waiting...</h1>
+            <h2 id="word">Player is choosing a word...</h1>
+    </div>
+
     <div id="parent">
         <ul id="workspace">
-        <li id="workitems"><div id="playerList" ></div></li>
-        <li id="workitems"><canvas id="drawingCanvas" width="600" height="600"></canvas></li>
-       
+        <li id="workitems">
+            
+            <div id="playerList" >
+                <!--
+                <div id="player"><img id="pencil" src="img/pencil.gif"/><h3 id="playername">ar</h3><h3 class="score">0</h3></div>
+                <div id="player"><img id="pencil" src="img/pencil.gif"/><h3 id="playername">ayt</h3><h3 class="score">0</h3></div>
+                <div id="player"><img id="pencil" src="img/pencil.gif"/><h3 id="playername">arty</h3><h3 class="score">0</h3></div>
+                <div id="player"><img id="pencil" src="img/pencil.gif"/><h3 id="playername">ayrtyr</h3><h3 class="score">0</h3></div>
+                <div id="player"><img id="pencil" src="img/pencil.gif"/><h3 id="playername">artyrtayeyyryaety</h3><h3 class="score">0</h3></div>
+                <div id="player"><img id="pencil" src="img/pencil.gif"/><h3 id="playername">asrtysrtysr</h3><h3 class="score">0</h3></div>
+                <div id="player" style="background-color:#00f829"><img id="pencil" src="img/pencil.gif"/><h3 id="playername">asrtysrtysr</h3><h3 class="score">0</h3></div>
+                -->
 
-        
-        <li id="workitems"><div id="chat" >
-                <input type="text" id="inputBox" placeholder="Enter your guess here"> </input>
-        </div></li>
+            </div>
+        </li>
+        <li id="workitems"><canvas id="drawingCanvas" width="600" height="600"></canvas></li>
+        <li id="workitems">
+               
+            <div id="chat">
+                <div id="actualchat">
+                    <!--
+                    <h3 id="chattext">Nir: hiiiiiiiiiiiiiiiiiiiiiiii</h3>
+                    <h3 id="chattext">Nir: hiiiiiiiiiiiiiiiiiiiiiiii</h3>
+                    <h3 id="chattext">Nir: hiiiiiiiiiiiiiiiiiiiiiiii</h3>
+                    <h3 id="chattext">Nir: hiiiiiiiiiiiiiiiiiiiiiiii</h3>
+                    <h3 id="chattext" style="color: #00bd1f">Nir has guessed the word!</h3>
+                    -->
+            </div>
+            <input type="text" id="inputBox" placeholder="Enter your guess here"> </input>
+            </div>
+        </li>
         <div id="toolBox">
                 <ul id="colors">
                     <li id ="colors_li"><h3 id ="colorTitle">Colors:</h3>
@@ -41,6 +70,21 @@
     </ul>
 
     </div>
+    <div id="overlay">
+            <div id="wordbuttons">
+                <h3 id="wordlabel">Choose a word:</h3>
+                <button class="butn wordbuttons">placeholder</button>
+                <button class="butn wordbuttons">placeholder</button>
+                <button class="butn wordbuttons">placeholder</button>
+            </div>
+    </div>
+
+
 </body>
+<script src="../node_modules/vex-js/dist/js/vex.combined.min.js"></script>
+<link rel="stylesheet" href="../node_modules/vex-js/dist/css/vex.css" />
+<link rel="stylesheet" href="../node_modules/vex-js/dist/css/vex-theme-os.css" />
+<script src="js/libraries/jquery-3.4.0.js"></script>
+<script>vex.defaultOptions.className = 'vex-theme-os';</script>
 <script src="js/mainWindow.js"></script>
 </html>

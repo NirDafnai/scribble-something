@@ -13,8 +13,11 @@ class Canvas
         this.color = "rgba(0,0,0)";
         this.canvasMousePos = {x: 0, y: 0};
         this.strokeButtonPressed = false;
-        this.rightClickPressed = false;
         this.paintBucketPressed = false;
+        this.username = "";
+        this.timerStartEvent = new Event('timerStart');
+        this.timeEnded = false;
+        this.isDrawer = false;
         this.addListeners();
         this.clearCanvas();
         this.loadPixels();
@@ -25,7 +28,144 @@ class Canvas
         /**
          * Hooks listeners to the canvas's objects. 
          */
+        ipcRenderer.on("setUsername", (event, name) => 
+        {
+            this.username = name;
+        }
+        );
+        ipcRenderer.on("addUsers", (event, users) => 
+        {
+            let playerlist = document.getElementById("playerList");
+            users.forEach((user, index) => 
+            {
+                let playerdiv = document.createElement("div");
+                playerdiv.setAttribute("id", "player");
+                let playertext = document.createElement("h3");
+                playertext.setAttribute("id", "playername");
+                playertext.innerText = user;
+                let img = document.createElement("img");
+                img.setAttribute("id", "pencil");
+                img.setAttribute("src", "img/pencil.gif");
+                if (index == 0) 
+                {
+                    img.style.visibility = "visible";
+                    document.getElementById("word").innerText = user + " is choosing a word...";
+                }
+                let score = document.createElement("h3");
+                score.setAttribute("class", "score");
+                score.innerText = "0";
+                if (user == this.username)
+                    playerdiv.style.backgroundColor = "rgb(240, 196, 0)"
+                playerdiv.appendChild(img);
+                playerdiv.appendChild(playertext);
+                playerdiv.appendChild(score);
+                playerlist.appendChild(playerdiv);
+                
+            }
+            );
+            
+        }
+        ); 
+        ipcRenderer.on("addUsersOwner", (event, username, users, words) => 
+        {
+            this.username = username;
+            let playerlist = document.getElementById("playerList");
+            users.forEach((user, index) => 
+            {
+                let playerdiv = document.createElement("div");
+                playerdiv.setAttribute("id", "player");
+                let playertext = document.createElement("h3");
+                playertext.setAttribute("id", "playername");
+                playertext.innerText = user;
+                let img = document.createElement("img");
+                img.setAttribute("id", "pencil");
+                img.setAttribute("src", "img/pencil.gif");
+                if (index == 0) 
+                {
+                    img.style.visibility = "visible";
+                    document.getElementById("word").innerText = user + " is choosing a word...";
+                }
+                let score = document.createElement("h3");
+                score.setAttribute("class", "score");
+                score.innerText = "0";
+                if (user == this.username)
+                    playerdiv.style.backgroundColor = "rgb(240, 196, 0)"
+                playerdiv.appendChild(img);
+                playerdiv.appendChild(playertext);
+                playerdiv.appendChild(score)
+                playerlist.appendChild(playerdiv);
+            }
+            );
+            this.isDrawer = true;
+            document.getElementById("toolBox").style.visibility = "visible";
+            document.getElementById("overlay").style.visibility = "visible";
+            document.getElementById("wordbuttons").style.visibility = "visible";
+            document.getElementById("wordlabel").style.visibility = "visible";
+            document.querySelectorAll(".wordbuttons").forEach((button, index) => 
+            {
+                button.innerText = words[index];
+                button.style.visibility = "visible";
+            }
+            );
+            
+        }
+        );
+        let timerLabel = document.getElementById("timer");
+        document.querySelectorAll(".wordbuttons").forEach((button) => 
+        {
+            button.addEventListener("mousedown", (event) => 
+            {
+                document.getElementById("overlay").style.visibility = "hidden";
+                document.getElementById("wordbuttons").style.visibility = "hidden";
+                document.getElementById("wordlabel").style.visibility = "hidden";
+                document.querySelectorAll(".wordbuttons").forEach((button1) => 
+                {
+                    button1.style.visibility = "hidden";
+                }
+                );
+                var wordDisplay = document.getElementById("word");
+                let undercases = "";
+                for (var i = 0; i < button.textContent.length; i++) 
+                {
+                    undercases += "_ "
+                }
+                  wordDisplay.innerText = button.textContent;
+                  document.querySelectorAll("#player").forEach((player) => 
+                  {
+                      if (player.querySelector("#playername").textContent != this.username)
+                          player.style.backgroundColor = "#4169e1"
+                  }
+                  );
+                  ipcRenderer.send("sendData", "choseWord&" + undercases + "&" + button.textContent);
+                  timerLabel.dispatchEvent(this.timerStartEvent);
 
+            }
+            );
+        }
+        );
+        timerLabel.addEventListener("timerStart", () => 
+        {
+            const self = this;
+            var timer = 90;
+            this.timerfunction = setInterval(function () {
+                let minutes = parseInt(timer / 60, 10)
+                let seconds = parseInt(timer % 60, 10);
+        
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+        
+                timerLabel.textContent = minutes + ":" + seconds;
+        
+                if (--timer < 0) {
+                    self.timeEnded = true;
+                    self.isDrawer = false;
+                    document.getElementById("toolBox").style.visibility = "hidden";
+                    document.getElementById("timer").innerText = "Waiting..."
+                    clearInterval(this.timerfunction);
+                }
+            }, 1000);
+        }
+        );
         let colorButtons = document.querySelectorAll('.colors');
         colorButtons.forEach((colorButton) => 
         {
@@ -39,32 +179,39 @@ class Canvas
 
         this.canvas.addEventListener("mousedown", (event) =>
         {
-            if (this.paintBucketPressed) 
+            if (this.isDrawer) 
             {
-                this.loadPixels();
-                const {mouseX, mouseY} = this.getMouseCoordinates(event);
-                const data = {
-                    x: mouseX,
-                    y: mouseY,
-                    color: this.color
-                };
-                ipcRenderer.send('sendData', 'fill&' + JSON.stringify(data));
-                this.fill(mouseX, mouseY, this.color, this.getPixelColor(mouseX, mouseY));
+                if (this.paintBucketPressed) 
+                {
+                    this.loadPixels();
+                    const {mouseX, mouseY} = this.getMouseCoordinates(event);
+                    const data = {
+                        x: mouseX,
+                        y: mouseY,
+                        color: this.color
+                    };
+                    ipcRenderer.send('sendData', 'fill&' + JSON.stringify(data));
+                    this.fill(mouseX, mouseY, this.color, this.getPixelColor(mouseX, mouseY));
+                }
+                else 
+                {
+                    if (event.which == 1) 
+                    {
+                        this.drawing = true;
+                        const {mouseX, mouseY} = this.getMouseCoordinates(event);
+                        this.setPosition(mouseX, mouseY);
+                        this.draw(mouseX, mouseY, this.color);
+                        const data = {
+                            x: mouseX,
+                            y: mouseY,
+                            color: this.color,
+                            stroke: this.strokeSize
+                        };
+                        ipcRenderer.send('sendData', "new&" + JSON.stringify(data));
+                    }
+                }
             }
-            else 
-            {
-                this.drawing = true;
-                const {mouseX, mouseY} = this.getMouseCoordinates(event);
-                this.setPosition(mouseX, mouseY);
-                this.draw(event.which, mouseX, mouseY);
-                const data = {
-                    x: mouseX,
-                    y: mouseY,
-                    color: this.color,
-                    stroke: this.strokeSize
-                };
-                ipcRenderer.send('sendData', "new&" + JSON.stringify(data));
-            }
+
 
         }
         );
@@ -72,38 +219,40 @@ class Canvas
         window.previousPos = 0;
         addEventListener("mousemove", (event) =>
         {
-            if (this.strokeButtonPressed) 
+            if (this.isDrawer) 
             {
-                this.handleStrokeButton(event, outerCircle, innerCircle);
+                if (this.strokeButtonPressed) 
+                {
+                    this.handleStrokeButton(event, outerCircle, innerCircle);
+                }
+                else if (this.drawing) 
+                {
+                    if (event.which == 1) 
+                    {
+                        const {mouseX, mouseY} = this.getMouseCoordinates(event);
+                        this.draw(mouseX, mouseY, this.color);
+                        const data = {
+                            x: mouseX,
+                            y: mouseY,
+                            color: this.color,
+                            stroke: this.strokeSize
+                        };
+                        ipcRenderer.send('sendData', "move&" + JSON.stringify(data));
+                    }
+                }
             }
-            else if (this.drawing) 
-            {
-                const {mouseX, mouseY} = this.getMouseCoordinates(event);
-                this.draw(event.which, mouseX, mouseY);
-                const data = {
-                    x: mouseX,
-                    y: mouseY,
-                    color: this.color,
-                    stroke: this.strokeSize
-                };
-                ipcRenderer.send('sendData', "move&" + JSON.stringify(data));
-            }
-
         }
         );
 
         addEventListener("mouseup", () => 
         {
-            if(this.drawing) this.drawing = false;
-
-            if (this.strokeButtonPressed) this.strokeButtonPressed = false;
-            
-            if (this.rightClickPressed) 
+            if (this.isDrawer) 
             {
-                this.canvas.style.cursor = `url('img/cursor.png'), crosshair`;
-                this.rightClickPressed = false;
-            }
+                if(this.drawing) this.drawing = false;
 
+                if (this.strokeButtonPressed) this.strokeButtonPressed = false;
+                
+            }
         }
         );
 
@@ -159,22 +308,63 @@ class Canvas
                 document.getElementById('custom_color').style.borderColor = "white";
             
         }
+        let chatbox = document.getElementById("actualchat")
+        let inputbox = document.getElementById("inputBox")
+        inputbox.addEventListener("keyup", (event) => 
+        {
+            if (event.key == "Enter") 
+            {
+                if (inputbox.value != "" && !this.timeEnded && !this.isDrawer) 
+                {
+                    ipcRenderer.send("sendData", "chatmessage&" + this.username + "&" + inputbox.value)
+                    inputbox.value = "";
+                    chatbox.scrollTop = chatbox.scrollHeight - chatbox.clientHeight;
+                }
+            }
+        }
+        );
+        inputbox.addEventListener("keypress", (event) => 
+        {
+            if (!event.ctrlKey) 
+            {
+                if ("&".includes(event.key))
+                {
+                    event.preventDefault();
+                }
+            }
+
+        }
+        );
+        inputbox.addEventListener("paste", (event) => 
+        {
+            let data = event.clipboardData.getData('text/plain')
+            data = data.split('');
+            for (let i=0; i<data.length; i++) 
+            {
+                if ("&".includes(data[i]))
+                {
+                    event.preventDefault();
+                    break;
+                }
+            }
+
+        }
+        );
+
 
         ipcRenderer.on('newMouseCoordinates', (event, data) => 
         {
             data = JSON.parse(data);
-            this.color = data.color;
             this.strokeSize = data.stroke;
             this.setPosition(data.x, data.y);
-            this.draw(1, data.x, data.y);
+            this.draw(data.x, data.y, data.color);
         }
         );
         ipcRenderer.on('moveMouseCoordinates', (event, data) => 
         {
             data = JSON.parse(data);
-            this.color = data.color;
             this.strokeSize = data.stroke;
-            this.draw(1, data.x, data.y);
+            this.draw(data.x, data.y, data.color);
         }
         );
         ipcRenderer.on('fill', (event, data) => 
@@ -190,14 +380,11 @@ class Canvas
         }
         );
         ipcRenderer.send("readytoget")
-        console.log("readytoget")
         ipcRenderer.on('canvas', (event) => 
         {
-            console.log("setting canvas")
             let data = remote.getGlobal('myObject');
             var img = new Image();
             img.src = data;
-            console.log(data)
             img.onload = () => {
                 this.context.drawImage(img, 0, 0);
               };       
@@ -206,6 +393,194 @@ class Canvas
         ipcRenderer.on('clearCanvas', () => 
         {
             this.clearCanvas();
+        }
+        );
+        ipcRenderer.on("chatmessage", (event, message) => 
+        {
+            let a = document.createElement("h3");
+            a.setAttribute("id", "chattext");
+            a.innerText = message;
+            chatbox.appendChild(a);
+        }
+        );
+        ipcRenderer.on("youDraw", (event, drawerScore, words) => 
+        {
+            clearInterval(this.timerfunction);
+            this.handleColorClick(colorButtons, colorButtons.item(1));
+            this.strokeSize = 16;
+            var innerCircle = document.getElementById("innercircle")
+            innerCircle.style.height = 16;
+            innerCircle.style.width = 16;
+            innerCircle.style.top = 770;
+            innerCircle.style.left = 1116;
+            this.color = "rgba(0,0,0)";
+            this.canvasMousePos = {x: 0, y: 0};
+            this.strokeButtonPressed = false;
+            this.paintBucketPressed = false;
+            this.drawing = false;
+            this.isDrawer = true;
+            document.getElementById("toolBox").style.visibility = "visible";
+            document.getElementById("overlay").style.visibility = "visible";
+            document.getElementById("wordbuttons").style.visibility = "visible";
+            document.getElementById("wordlabel").style.visibility = "visible";
+            document.querySelectorAll(".wordbuttons").forEach((button, index) => 
+            {
+                button.innerText = words[index];
+                button.style.visibility = "visible";
+            }
+            );
+            document.querySelectorAll("#player").forEach((player) => 
+            {
+                if (player.querySelector("#pencil").style.visibility == "visible") 
+                {
+                    let currentScore = parseInt(player.querySelector(".score").textContent)
+                    player.querySelector(".score").innerText = currentScore + parseInt(drawerScore);
+                }
+                if (player.querySelector("#playername").textContent != this.username)
+                    player.querySelector("#pencil").style.visibility = "hidden";
+                else player.querySelector("#pencil").style.visibility = "visible";
+            }
+            );
+            document.getElementById("word").innerText = this.username + " is choosing a word...";
+            this.clearCanvas();
+            
+        }
+        );
+        ipcRenderer.on("chosenWord", (event, word) =>
+        {
+            var wordDisplay = document.getElementById("word");
+            wordDisplay.innerText = word;
+            this.timeEnded = false;
+            timerLabel.dispatchEvent(this.timerStartEvent)
+            document.querySelectorAll("#player").forEach((player) => 
+            {
+                if (player.querySelector("#playername").textContent != this.username)
+                    player.style.backgroundColor = "#4169e1"
+            }
+            );
+        }
+        );
+        ipcRenderer.on("newRound", (event, round) =>
+        {
+            document.getElementById("rounds").textContent = "Round " + round + "/3";
+        }
+        );
+        ipcRenderer.on("newDrawer", (event, drawerScore ,drawerUsername, word) =>
+        {
+            let a = document.createElement("h3");
+            a.setAttribute("id", "chattext");
+            a.style.color = "#00bd1f";
+            a.innerText = "The word was: '" + word + "'";
+            chatbox.appendChild(a);
+            this.isDrawer = false;
+            document.getElementById("toolBox").style.visibility = "hidden";
+            clearInterval(this.timerfunction);
+            this.handleColorClick(colorButtons, colorButtons.item(1));
+            this.strokeSize = 16;
+            var innerCircle = document.getElementById("innercircle")
+            innerCircle.style.height = 16;
+            innerCircle.style.width = 16;
+            innerCircle.style.top = 770;
+            innerCircle.style.left = 1116;
+            this.color = "rgba(0,0,0)";
+            this.canvasMousePos = {x: 0, y: 0};
+            this.strokeButtonPressed = false;
+            this.paintBucketPressed = false;
+            this.drawing = false;
+            document.querySelectorAll("#player").forEach((player) => 
+            {
+                if (player.querySelector("#pencil").style.visibility == "visible") 
+                {
+                    let currentScore = parseInt(player.querySelector(".score").textContent)
+                    player.querySelector(".score").innerText = currentScore + parseInt(drawerScore);
+                }
+                if (player.querySelector("#playername").textContent != drawerUsername)
+                    player.querySelector("#pencil").style.visibility = "hidden";
+                else player.querySelector("#pencil").style.visibility = "visible";
+            }
+            );
+            document.getElementById('word').innerText = drawerUsername + " is choosing a word...";
+            this.clearCanvas();
+        }
+        );
+        ipcRenderer.on("playerGuessedWord", (event, player, score, word) => 
+        {
+            let a = document.createElement("h3");
+            a.setAttribute("id", "chattext");
+            a.style.color = "#00bd1f";
+            if (player == this.username)
+            {
+                a.innerText = "You have guessed the word!";
+                document.getElementById("word").innerText = word;
+                this.timeEnded = true;
+                document.querySelectorAll("#player").forEach((user) => 
+                {
+                    if (user.querySelector("#playername").textContent == player) 
+                    {
+                        let currentScore = parseInt(user.querySelector(".score").textContent)
+                        user.querySelector(".score").innerText = currentScore + parseInt(score);
+
+                    }
+                }
+                );
+            }
+            else 
+            {
+                a.innerText = player + " has guessed the word!";
+                document.querySelectorAll("#player").forEach((user) => 
+                {
+                    if (user.querySelector("#playername").textContent == player)
+                    {
+                        user.style.backgroundColor = "#00f829";
+                        let currentScore = parseInt(user.querySelector(".score").textContent)
+                        user.querySelector(".score").innerText = currentScore + parseInt(score);
+                    }
+                }
+                );
+            }
+            chatbox.appendChild(a);
+        }
+        );
+        ipcRenderer.on("sendWinner", (event) => 
+        {
+            let highestScore = ["username", 0];
+            document.querySelectorAll("#player").forEach((player) => 
+            {
+                if ((parseInt(player.querySelector(".score").textContent) > highestScore[1])) 
+                {
+                    highestScore[0] = player.querySelector("#playername").textContent;
+                    highestScore[1] = parseInt(player.querySelector(".score").textContent);
+                }
+            }
+            );
+            let hasHighScore = 0;
+            document.querySelectorAll("#player").forEach((player) => 
+            {
+
+                if (parseInt(player.querySelector(".score").textContent) == highestScore[1])
+                {
+                    hasHighScore++;
+                }
+            }
+            );
+            if (hasHighScore > 1) ipcRenderer.send("sendData", "tie");
+            else ipcRenderer.send("sendData", "winner&" + highestScore[0] + "&" + highestScore[1].toString());
+        }
+        );
+        ipcRenderer.on("tie", (event) => 
+        {
+            clearInterval(this.timerfunction);
+            this.isDrawer = false;
+            document.getElementById("toolBox").style.visibility = "hidden";
+            vex.dialog.alert('The game has ended in a draw.');
+        }
+        );
+        ipcRenderer.on("win", (event, winner, score) => 
+        {
+            clearInterval(this.timerfunction);
+            this.isDrawer = false;
+            document.getElementById("toolBox").style.visibility = "hidden";
+            vex.dialog.alert('The game has ended. ' + winner + ' has won with a score of: ' + score);
         }
         );
 
@@ -329,28 +704,15 @@ class Canvas
     }
 
 
-    draw(buttonClicked, mouseX, mouseY) 
+    draw(mouseX, mouseY, color) 
     {
         /**
          * Draws a line on the canvas on mouse press and hold.
-            * @param {number} buttonClicked 1 for left click and 3 for right click.
             * @param {number} mouseX Holds the X mouse coordinates.
             * @param {number} mouseY Holds the Y mouse coordinates.
         */
-
-        if (buttonClicked == 3) // right click 
-        {
-            this.canvas.style.cursor = `url('img/erasercursor.png'), crosshair`;
-            this.rightClickPressed = true;
-            this.context.strokeStyle = "rgb(255,255,255)"; // color of stroke
-        }
-        else if (buttonClicked == 1) // left click
-        {
-            this.canvas.style.cursor = `url('img/cursor.png'), crosshair`;
-            this.strokeStyle = "rgb(255,255,255)";
-            this.context.strokeStyle = this.color; // color of stroke
-        }
-        else if (buttonClicked != 1) return; // anything other than left click and right click
+        this.canvas.style.cursor = `url('img/cursor.png'), crosshair`;
+        this.context.strokeStyle = color; // color of stroke
         
         this.context.beginPath();
         this.context.lineWidth = this.strokeSize; // width of stroke
@@ -469,7 +831,6 @@ function stringRGBtoArray(rgb)
         * 
         * @returns {Array} containing the RGBA values.
     */
-    console.log(rgb)
     if (rgb instanceof Array) return rgb
     else if (rgb == "white")
     {
@@ -482,12 +843,10 @@ function stringRGBtoArray(rgb)
     else
     {
         rgb = rgb.substring(rgb.indexOf("(") + 1, rgb.indexOf(")")).split(',');
-        console.log(rgb)
         rgb[0] = parseInt(rgb[0]);
         rgb[1] = parseInt(rgb[1]);
         rgb[2] = parseInt(rgb[2]);
         rgb[3] = 255;
-        console.log(rgb)
         return rgb;
     }
 
