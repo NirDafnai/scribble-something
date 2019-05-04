@@ -16,7 +16,7 @@ class loginWindow
         /**
             * Hooks listeners to the window's elements and IPC communication. 
         */
-        let invalid_characters = "'%\\_/&";
+        let invalid_characters = "'%\\_/";
         invalid_characters +='"';
         let fields = [this.usernameField, this.passwordField]
         fields.forEach(field => 
@@ -28,7 +28,7 @@ class loginWindow
                         if (invalid_characters.includes(event.key)) 
                         {
                             event.preventDefault();
-                            ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / & " + '"');
+                            ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / " + '"');
                         }
                     }
     
@@ -43,7 +43,7 @@ class loginWindow
                         if (invalid_characters.includes(data[i]))
                         {
                             event.preventDefault();
-                            ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / & " + '"');
+                            ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / " + '"');
                             break;
                         }
                     }
@@ -62,45 +62,30 @@ class loginWindow
         );
         this.login_button.addEventListener("mousedown", () => 
         {
-            this.sendLoginInfo();
+            if (this.usernameField.value == "" && this.passwordField.value == "") 
+            {
+                ipcRenderer.send("openErrorMessage", "Username and password fields are empty.")
+            }
+            else if (this.usernameField.value == "") 
+            {
+                ipcRenderer.send("openErrorMessage", "Username field is empty.")
+            }
+            else if (this.passwordField.value == "") 
+            {
+                ipcRenderer.send("openErrorMessage", "Password field is empty.")
+            }
+            else
+            {
+                ipcRenderer.send("sendData", "login&" + this.usernameField.value + "&" + this.passwordField.value)
+            }
+            //ipcRenderer.send("openErrorMessage", "gay")
         }
-        );
+        )
         this.signup_button.addEventListener("mousedown", () => 
         {
             ipcRenderer.send('openSignup');
         }
         );
-        addEventListener("keypress", (event) => 
-        {
-            if(event.key == "Enter") 
-            {
-                this.sendLoginInfo();
-            }
-        }
-        )
-    }
-    sendLoginInfo() 
-    {
-        /**
-            * Sends login info to renderer. 
-        */
-       console.log(this)
-       if (this.usernameField.value == "" && this.passwordField.value == "") 
-       {
-           ipcRenderer.send("openErrorMessage", "Username and password fields are empty.")
-       }
-       else if (this.usernameField.value == "") 
-       {
-           ipcRenderer.send("openErrorMessage", "Username field is empty.")
-       }
-       else if (this.passwordField.value == "") 
-       {
-           ipcRenderer.send("openErrorMessage", "Password field is empty.")
-       }
-       else
-       {
-           ipcRenderer.send("sendData", "login&" + this.usernameField.value + "&" + this.passwordField.value)
-       }
     }
 }
 module.exports = loginWindow;

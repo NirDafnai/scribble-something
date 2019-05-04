@@ -9,11 +9,6 @@
   "author": "Nir Dafnai",
   "license": "ISC",
   "dependencies": {
-    "electron": "^4.0.0",
-    "electron-better-dialog": "^1.0.6",
-    "vex-js": "^4.1.0"
-  },
-  "devDependencies": {
-    "electron-packager": "^13.1.1"
+    "electron": "^4.0.0"
   }
 }
