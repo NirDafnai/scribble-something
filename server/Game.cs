@@ -17,18 +17,19 @@ namespace ScribbleServer
     {
         public Lobby lobby;
         public bool gameRunning;
-        private int rounds;
+        public int rounds;
         private int maxRounds;
         private string chosenWord;
-        private int turn;
-        private int counter;
+        public string hiddenWord;
+        public int turn;
+        public int counter;
         private int guessedPlayers;
         private Timer timer;
         public Game(Lobby _lobby)
         {
             this.lobby = _lobby;
             this.rounds = 1;
-            this.maxRounds = 2;
+            this.maxRounds = 3;
             this.gameRunning = true;
             this.timer = new Timer();
             this.timer.Elapsed += new ElapsedEventHandler(this.timer_Tick);
@@ -36,17 +37,26 @@ namespace ScribbleServer
             this.counter = 91;
             this.turn = 0;
             this.guessedPlayers = 0;
+            this.hiddenWord = "none";
         }
         /// <summary>
         /// Manages the game.
         /// </summary>
         public void game()
         {
+            Client player;
             while (this.gameRunning && this.rounds <= this.maxRounds)
             {
                 for (int i = this.lobby.clients.Count - 1; i >= 0; i--)
                 {
-                    Client player = this.lobby.clients[i];
+                    try
+                    {
+                        player = this.lobby.clients[i];
+                    }
+                    catch
+                    {
+                        continue;
+                    }
                     try
                     {
                         if (player.socket.Client.Poll(0, SelectMode.SelectRead))
@@ -110,6 +120,7 @@ namespace ScribbleServer
                                                     client.writeStream.WriteLine("newDrawer&" + drawerScore.ToString() + "&" + this.lobby.clients[turn].username + "&" + this.chosenWord);
                                             }
                                             this.guessedPlayers = 0;
+                                            this.hiddenWord = "none";
                                         }
                                     }
                                     else
@@ -125,6 +136,7 @@ namespace ScribbleServer
                                 else if (processedData[0] == "choseWord")
                                 {
                                     this.chosenWord = processedData[2];
+                                    this.hiddenWord = processedData[1];
                                     for (int a = this.lobby.clients.Count - 1; a >= 0; a--)
                                     {
                                         Client client = this.lobby.clients[a];
@@ -169,11 +181,16 @@ namespace ScribbleServer
         /// <param name="forceDisconnect">Was the disconnect a Ctrl+C/Alt+F4 and such or just a leave button.</param>
         public void disconnectHandler(Client disconnectedClient, bool forceDisconnect)
         {
+            Server.ConnectedUsers.Remove(disconnectedClient);
             this.lobby.clients.Remove(disconnectedClient);
             if (!forceDisconnect)
                 Server.Clients.Add(disconnectedClient);
             else
-                Console.WriteLine("Client disconnected: " + disconnectedClient.ip + ":" + disconnectedClient.port);
+            {
+                string timeStamp = Server.GetTimestamp(DateTime.Now);
+                Server.logs.Items.Add("Client disconnected: " + disconnectedClient.ip + ":" + disconnectedClient.port);
+
+            }
             this.lobby.playerCount--;
             if (this.lobby.playerCount == 0)
             {
@@ -189,6 +206,51 @@ namespace ScribbleServer
             }
             else
             {
+                if (this.lobby.playerCount == 1)
+                {
+                    this.lobby.clients[0].writeStream.WriteLine("backToLobby&" + this.lobby.clients[0].username);
+                    timer.Enabled = false;
+                    this.gameRunning = false;
+                    this.lobby.gameOn = false;
+                }
+                else
+                {
+                    foreach (Client playerToSend in this.lobby.clients.ToList())
+                    {
+                        playerToSend.writeStream.WriteLine("playerLeft&" + disconnectedClient.username);
+                    }
+
+                    if (this.turn > this.lobby.clients.Count - 1)
+                    {
+                        this.turn = 0;
+                        this.rounds++;
+                        if (rounds > maxRounds)
+                        {
+                            this.winHandler();
+                            this.gameRunning = false;
+                            return;
+                        }
+                        else
+                        {
+                            for (int f = this.lobby.clients.Count - 1; f >= 0; f--)
+                            {
+                                Client client = this.lobby.clients[f];
+                                client.writeStream.WriteLine("newRound&" + this.rounds.ToString());
+                            }
+                        }
+                    }
+                    timer.Enabled = false;
+                    this.counter = 91;
+                    this.lobby.clients[turn].writeStream.WriteLine("youDraw&" + "0" + "&" + JsonConvert.SerializeObject(this.getWords("words.txt", 3)));
+                    for (int f = this.lobby.clients.Count - 1; f >= 0; f--)
+                    {
+                        Client client = this.lobby.clients[f];
+                        if (!client.Equals(this.lobby.clients[turn]))
+                            client.writeStream.WriteLine("newDrawer&" + "0" + "&" + this.lobby.clients[turn].username + "&" + this.chosenWord);
+                    }
+                    this.guessedPlayers = 0;
+                    this.hiddenWord = "none";
+                }
                 List<Client> serverBrowserClients = Server.serverBrowserClients.ToList();
                 foreach (Client clientToSend in serverBrowserClients)
                 {
@@ -205,17 +267,6 @@ namespace ScribbleServer
                         {
                             this.lobby.gameCreator = this.lobby.clients[r];
                             valid = true;
-                        }
-                    }
-                }
-                else
-                {
-                    List<Client> clientsToWrite = this.lobby.clients.ToList();
-                    foreach (Client player in clientsToWrite)
-                    {
-                        if (!player.Equals(disconnectedClient))
-                        {
-                            player.writeStream.WriteLine("playerLeft&" + disconnectedClient.username);
                         }
                     }
                 }
@@ -335,6 +386,8 @@ namespace ScribbleServer
                 else
                     this.lobby.clients[a].writeStream.WriteLine("users&" + playersString + "&" + this.lobby.gameCreator.username + "&" + this.lobby.clients[a].username + "&" + "false");
             }
+
+            this.lobby.gameOn = false;
         }
     }
 }

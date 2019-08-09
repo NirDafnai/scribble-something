@@ -8,8 +8,11 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Runtime.CompilerServices;
 using EmailValidation;
 using Newtonsoft.Json;
+using System.Data.SQLite;
+using System.Net.Mail;
 
 namespace ScribbleServer
 {
@@ -18,27 +21,31 @@ namespace ScribbleServer
         /// <summary>
         /// Server Class, responsible for handling clients and sending/receiving data.
         /// </summary>
-        private static Thread server;
+        public static Thread server;
         private const int Port = 8820;
-        private static TcpListener serverSocket = new TcpListener(IPAddress.Any, Port);
-        private static bool online;
+        public static TcpListener serverSocket = new TcpListener(IPAddress.Any, Port);
+        public static bool online;
         public static List<Client> Clients = new List<Client>();
-        private static List<User> Users = SqlManager.LoadUsers();
+        public static List<User> Users;
         public static List<Lobby> Games = new List<Lobby>();
         public static List<Client> serverBrowserClients = new List<Client>();
+        public static List<Client> ConnectedUsers = new List<Client>();
+        public static List<Client> AllClients = new List<Client>();
+        public static List<string[]> Codes = new List<string[]>();
+        public static ListBox logs;
         static void Main()
         {
             /*
              The main function that starts the GUI and runs the server thread. 
             */
-            //Application.EnableVisualStyles();
-            //Application.SetCompatibleTextRenderingDefault(false);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
             server = new Thread(HandleClients);
-            server.Start();
-            //Application.Run(new ScribbleServerGUI());
+            Application.Run(new ScribbleServerGUI());
+            //server.Start();
 
         }
-        static void HandleClients()
+        public static void HandleClients()
         {
             /*
              * Main function for clients, accepts new clients, receives their data and sends data accordingly.
@@ -52,6 +59,15 @@ namespace ScribbleServer
             List<Lobby> stoppedGames = new List<Lobby>();
             List<Client> disconnectedClients = new List<Client>();
             List<Client> clientsToRemove = new List<Client>();
+            try
+            {
+                SqlManager.sql_conn.Open();
+            }
+            catch
+            {
+            }
+            Users = SqlManager.LoadUsers();
+            Client user;
             while (online)
             {
                 if (serverSocket.Pending())
@@ -64,39 +80,24 @@ namespace ScribbleServer
                     }
                     Client c = new Client(client, readStream, writeStream);
                     Clients.Add(c);
-                    Console.WriteLine("New client: " + c.ip + ":" + c.port);
-                    if(Clients.Count() > 1)
-                    {
-                        /*
-                         * Clients[0].writeStream.WriteLine("send_canvas");
-                        string data = Clients[0].readStream.ReadLine();
-                        string[] data1 = data.Split('&');
-                        if (data1[0] == "canvas")
-                        {
-                            var modified_data = new List<String>();
-                            modified_data = data1.ToList();
-                            modified_data.RemoveAt(0);
-                            data1 = modified_data.ToArray();
-                            data = string.Join("", data1);
-                            while (data.Length > 1024)
-                            {
-                                c.writeStream.WriteLine("dataparts&" + data.Substring(0, 1024));
-                                c.readStream.ReadLine(); 
-                                data = data.Substring(1024);
-                            }
-                            c.writeStream.WriteLine("dataparts&" + data);
-                            c.readStream.ReadLine();
-                            c.writeStream.WriteLine("end");
-                        }
-                        */
-                    }
+                    AllClients.Add(c);
+                    string timeStamp = GetTimestamp(DateTime.Now);
+                    logs.Items.Add(timeStamp + "New client: " + c.ip + ":" + c.port);
                         
 
                 }
                 
                 for (int i = Clients.Count - 1; i >= 0; i--)
                 {
-                    Client user = Clients[i];
+                    try
+                    {
+                        user = Clients[i];
+
+                    }
+                    catch
+                    {
+                        continue;
+                    }
                     try
                     {
                         if (user.socket.Client.Poll(0, SelectMode.SelectRead))
@@ -106,7 +107,9 @@ namespace ScribbleServer
                             {
                                 Clients.Remove(user);
                                 serverBrowserClients.Remove(user);
-                                Console.WriteLine("Client disconnected: " + user.ip + ":" + user.port);
+                                ConnectedUsers.Remove(user);
+                                string timeStamp = GetTimestamp(DateTime.Now);
+                                logs.Items.Add(timeStamp + "Client disconnected: " + user.ip + ":" + user.port);
                             }
                             else
                             {
@@ -147,12 +150,111 @@ namespace ScribbleServer
                                 {
                                     if (ValidateLoginDetails(processedData[1], processedData[2]))
                                     {
-                                        user.writeStream.WriteLine("successfulLogin&" + processedData[1]);
-                                        user.username = processedData[1];
+                                        bool exists = false;
+                                        List<Client> connected_users = ConnectedUsers.ToList();
+                                        foreach(Client connectedUser in connected_users)
+                                        {
+                                            if (connectedUser.username == processedData[1])
+                                            {
+                                                exists = true;
+                                            }
+                                        }
+                                        if (!exists)
+                                        {
+                                            user.writeStream.WriteLine("successfulLogin&" + processedData[1]);
+                                            user.username = processedData[1];
+                                            ConnectedUsers.Add(user);
+                                        }
+                                        else
+                                        {
+                                            user.writeStream.WriteLine("alreadyLoggedin");
+                                        }
+
                                     }
                                     else
                                     {
                                         user.writeStream.WriteLine("unsucessfulLogin");
+                                    }
+                                }
+                                else if (processedData[0] == "resetPassword")
+                                {
+                                    SQLiteCommand cmd = new SQLiteCommand(SqlManager.sql_conn);
+                                    cmd.CommandText = "SELECT count(*) FROM users WHERE username='" + processedData[1] + "'";
+                                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                                    if (count == 0)
+                                    {
+                                        user.writeStream.WriteLine("doesntExist");
+                                    }
+                                    else
+                                    {
+                                        user.writeStream.WriteLine("sendCode");
+                                        cmd.CommandText = "SELECT * FROM users WHERE username='" + processedData[1] + "' LIMIT 1";
+                                        SQLiteDataReader reader = cmd.ExecuteReader();
+                                        reader.Read();
+                                        string email = reader["email"].ToString();
+                                        
+                                        string randomCode = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+                                        Codes.Add(new string[] {randomCode, processedData[1]});
+                                        MailMessage mail = new MailMessage();
+                                        var fromAddress = new MailAddress("nsyncmail1@gmail.com", "Scribble Something");
+                                        var toAddress = new MailAddress(email);
+                                        string fromPassword = "mzmizmnbmzkzdkwm";
+                                        const string subject = "Password Reset";
+                                        string body = "Your reset code is: " + randomCode + "\nYour code expires in 5 minutes";
+                                        var smtp = new SmtpClient("smtp.gmail.com", 587);
+                                        smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                                        smtp.EnableSsl = true;
+                                        smtp.UseDefaultCredentials = false;
+                                        smtp.Credentials = new NetworkCredential(fromAddress.Address, fromPassword);
+                                        using (var message = new MailMessage(fromAddress, toAddress)
+                                        {
+                                            Subject = subject,
+                                            Body = body
+                                        })
+                                        {
+                                            smtp.Send(message);
+                                        }
+                                        Task.Delay(300000).ContinueWith(t =>
+                                        {
+                                            int index = 0;
+                                            for (int j = 0; j < Codes.Count; j++)
+                                            {
+                                                if (Codes[j][0] == randomCode)
+                                                {
+                                                    index = j;
+                                                    break;
+                                                }
+                                            }
+
+                                            Codes.RemoveAt(index);
+
+                                        });
+                                    }
+                                }
+                                else if (processedData[0] == "resetCode")
+                                {
+                                    string username;
+                                    try
+                                    {
+                                        username = Codes.Find(x => x[0] == processedData[1])[1];
+                                    }
+                                    catch
+                                    {
+                                        username = null;
+                                    }
+                                    if (username == null)
+                                    {
+                                        user.writeStream.WriteLine("invalidCode");
+                                    }
+                                    else
+                                    {
+                                        SQLiteCommand cmd = new SQLiteCommand(SqlManager.sql_conn);
+                                        cmd.CommandText =
+                                            "UPDATE users SET password='" + processedData[2] + "' WHERE username='" +
+                                            username + "'";
+                                        cmd.ExecuteNonQuery();
+                                        Users = SqlManager.LoadUsers();
+                                        user.writeStream.WriteLine("changedPassword");
                                     }
                                 }
                                 else if (processedData[0] == "newGame")
@@ -175,15 +277,53 @@ namespace ScribbleServer
                                     {
                                         if (!lobby.isPassworded || (lobby.isPassworded && lobby.gamePassword == processedData[2]))
                                         {
-                                            List<string> users = new List<string>();
-                                            List<Client> clients = lobby.clients.ToList();
-                                            foreach (Client player in clients)
+
+                                            if (lobby.gameOn)
                                             {
-                                                if (player.username != lobby.gameCreator.username)
-                                                    users.Add(player.username);
+                                                List<string> users = new List<string>();
+                                                List<Client> clients = lobby.clients.ToList();
+                                                foreach (Client player in clients)
+                                                {
+                                                    users.Add(player.username + "|" + player.score);
+                                                }
+                                                users.Add(user.username + "|0");
+                                                user.writeStream.WriteLine("joinAcceptedGame&" + user.username + "&" + lobby.clients[lobby.currentGame.turn].username + "&" + lobby.currentGame.hiddenWord + "&" + lobby.currentGame.rounds.ToString() + "&" + lobby.currentGame.counter.ToString() +  "&" + JsonConvert.SerializeObject(users));
+                                                // START NEW THREAD AND SOCKET.
+                                                new Thread(() =>
+                                                {
+                                                    Thread.CurrentThread.IsBackground = true;
+                                                    TcpListener imageSocket = new TcpListener(IPAddress.Any, 5000);
+                                                    imageSocket.Start();
+                                                    lobby.clients[0].writeStream.WriteLine("send_canvas");
+                                                    TcpClient imageSender = imageSocket.AcceptTcpClient();
+                                                    StreamReader imageSenderRead = new StreamReader(imageSender.GetStream());
+                                                    StreamWriter imageSenderWrite = new StreamWriter(imageSender.GetStream());
+                                                    string canvas = imageSenderRead.ReadLine();
+                                                    imageSender.Close();
+                                                    while (canvas.Length > 1024)
+                                                    {
+                                                        user.writeStream.WriteLine("dataparts&" + canvas.Substring(0, 1024));
+                                                        user.readStream.ReadLine();
+                                                        canvas = canvas.Substring(1024);
+                                                    }
+                                                    user.writeStream.WriteLine("dataparts&" + canvas);
+                                                    user.readStream.ReadLine();
+                                                    user.writeStream.WriteLine("end");
+                                                }).Start();
+                                                
                                             }
-                                            users.Add(user.username);
-                                            user.writeStream.WriteLine("joinAccepted&" + lobby.gameCreator.username + "&" + JsonConvert.SerializeObject(users) + "&" + user.username);
+                                            else
+                                            {
+                                                List<string> users = new List<string>();
+                                                List<Client> clients = lobby.clients.ToList();
+                                                foreach (Client player in clients)
+                                                {
+                                                    if (player.username != lobby.gameCreator.username)
+                                                        users.Add(player.username);
+                                                }
+                                                users.Add(user.username);
+                                                user.writeStream.WriteLine("joinAccepted&" + lobby.gameCreator.username + "&" + JsonConvert.SerializeObject(users) + "&" + user.username);
+                                            }
                                             lobby.playerCount += 1;
                                             lobby.newClientNotification(user);
                                             lobby.clients.Add(user);
@@ -222,13 +362,20 @@ namespace ScribbleServer
                     {
                         Clients.Remove(user);
                         serverBrowserClients.Remove(user);
-                        Console.WriteLine("Client disconnected with error: " + user.ip + ":" + user.port);
+                        ConnectedUsers.Remove(user);
+                        string timeStamp = GetTimestamp(DateTime.Now);
+                        logs.Items.Add(timeStamp + "Client disconnected with error: " + user.ip + ":" + user.port);
+                        logs.Items.Add(e);
                     }
 
                 }
 
             }
 
+        }
+        public static String GetTimestamp(DateTime value)
+        {
+            return value.ToString("dd/MM/yyyy @ HH:mm:ss | ");
         }
         static bool ValidateLoginDetails(string username, string password)
         {

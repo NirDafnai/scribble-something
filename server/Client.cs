@@ -17,7 +17,6 @@ namespace ScribbleServer
         public string port { get; }
         public string username = "null";
         public int score = 0;
-        public bool drawer;
         public Client(TcpClient _socket, StreamReader _readStream, StreamWriter _writeStream)
         {
             this.socket = _socket;

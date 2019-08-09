@@ -59,7 +59,24 @@ class loginWindow
             }
             );
         }
-        );
+		);
+		ipcRenderer.on('serverOffline', () => 
+		{
+			let status = document.getElementById("status")
+			status.innerText = "Offline";
+			status.style.color = "red";
+			document.getElementById("statusImage").setAttribute("src", "img/loginWindow/offline.png")
+		}
+		);
+		ipcRenderer.on('serverOnline', () => 
+		{
+			console.log("hi")
+			let status = document.getElementById("status")
+			status.innerText = "Online";
+			status.style.color = "green";
+			document.getElementById("statusImage").setAttribute("src", "img/loginWindow/online.png")
+		}
+		);
         this.login_button.addEventListener("mousedown", () => 
         {
             this.sendLoginInfo();
@@ -69,7 +86,48 @@ class loginWindow
         {
             ipcRenderer.send('openSignup');
         }
-        );
+		);
+		document.getElementById("changeServer").addEventListener("mousedown", () => 
+		{
+			let status = document.getElementById("status")
+			if (status.innerText == "Offline") 
+			{
+				ipcRenderer.send("changeServer");
+			}
+			else 
+			{
+				ipcRenderer.send("openErrorMessage", "You are already connected to a server.");
+			}
+		}
+		);
+		document.getElementById("retryServer").addEventListener("mousedown", () => 
+		{
+			let status = document.getElementById("status")
+			if (status.innerText == "Offline") 
+			{
+				status.innerText = "Retrying...";
+				ipcRenderer.send("retryServer");
+			}
+			else 
+			{
+				ipcRenderer.send("openErrorMessage", "You are already connected to a server.");
+			}
+
+		}
+		);
+		document.getElementById("forgot-password").addEventListener("mousedown", () => 
+		{
+			let status = document.getElementById("status")
+			if (status.innerText == "Online") 
+			{
+				ipcRenderer.send("forgotPassword");
+			}
+			else 
+			{
+				ipcRenderer.send("openErrorMessage", "You must be connected to a server.");
+			}
+		}
+		);
         addEventListener("keypress", (event) => 
         {
             if(event.key == "Enter") 

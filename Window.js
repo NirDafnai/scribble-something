@@ -27,7 +27,8 @@ class Window
             backgroundColor: '#3e474e',
             show: false,
             minHeight: this.height + 20,
-            minWidth: this.width + 20,
+			minWidth: this.width + 20,
+			icon: "icon.ico",
             webPreferences: 
             {
                 nodeIntegration: true,

@@ -16,7 +16,7 @@ class signupWindow
         /**
             * Hooks listeners to the window's elements and IPC communication. 
         */
-        let invalid_characters = "'%\\_/&";
+        let invalid_characters = "'%\\_/&|";
         invalid_characters +='"';
         let fields = [this.usernameField, this.emailField, this.passwordField, this.confirmPasswordField]
         fields.forEach(field => 
@@ -28,7 +28,7 @@ class signupWindow
                     if (invalid_characters.includes(event.key)) 
                     {
                         event.preventDefault();
-                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / & " + '"');
+                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / & | " + '"');
                     }
                 }
 
@@ -43,7 +43,7 @@ class signupWindow
                     if (invalid_characters.includes(data[i]))
                     {
                         event.preventDefault();
-                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / &" + '"');
+                        ipcRenderer.send("openErrorMessage", "Invalid characters, you can't use % ' \\ _ / & | " + '"');
                         break;
                     }
                 }

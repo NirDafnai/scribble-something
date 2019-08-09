@@ -195,3 +195,56 @@ body
     left: 15px;
     top: 10px;
 }
+#statusParent 
+{
+	position: relative;
+	top: 40px;
+}
+#serverStatus 
+{
+	font-family: sans-serif;
+	color: white;
+	display: inline;
+	position: relative;
+}
+#status 
+{
+	font-family: sans-serif;
+	color: white;
+	display: inline;
+	position: relative;
+	color: green;
+}
+#retryServer 
+{
+	font-family: sans-serif;
+	color: #5474f5;
+	padding: 0;
+	margin-top: 50px;
+	width: 75px;
+	height: 5px;
+	cursor: pointer;
+	text-decoration: underline;
+}
+#changeServer 
+{
+	font-family: sans-serif;
+	color: #5474f5;
+	padding: 0;
+	position: relative;
+	margin-top: 5px;
+	width: 135px;
+	height: 5px;
+	cursor: pointer;
+	text-decoration: underline;
+}
+#forgot-password
+{
+	font-family: sans-serif;
+	color: #5474f5;
+	text-align: center;
+	text-decoration: underline;
+	margin: auto;
+	margin-top: 5px;
+	display: block;
+}

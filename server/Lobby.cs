@@ -25,6 +25,7 @@ namespace ScribbleServer
         public bool active;
         public int playerCount;
         public bool gameOn;
+        public Game currentGame;
         public List<Client> clientsToAdd;
 
         public Lobby(Client game_creator, string gameName)
@@ -48,11 +49,19 @@ namespace ScribbleServer
         {
             List<Client> disconnectedClients = new List<Client>();
             List<Client> leftUsers = new List<Client>();
+            Client client;
             while (this.active)
             {
                 for (int i = this.clients.Count - 1; i >= 0; i--)
                 {
-                    Client client = this.clients[i];
+                    try
+                    {
+                        client = this.clients[i];
+                    }
+                    catch
+                    {
+                        continue;
+                    }
                     try
                     {
                         if (client.socket.Client.Poll(0, SelectMode.SelectRead))
@@ -133,13 +142,14 @@ namespace ScribbleServer
                                     for (int a = this.clients.Count - 1; a >= 0; a--)
                                     {
                                         Client player = this.clients[a];
-                                        player.drawer = false;
+                                        player.score = 0;
                                         if (!player.Equals(client))
                                             player.writeStream.WriteLine("startGame&" + player.username + "&" + playersString);
                                     }
-                                    client.drawer = true;
                                     this.gameOn = true;
                                     Game game = new Game(this);
+                                    currentGame = game;
+                                    Thread.Sleep(30);
                                     client.writeStream.WriteLine("players&" + client.username + "&" + playersString + "&" + JsonConvert.SerializeObject(game.getWords("words.txt", 3)));
                                     game.game();
                                 }
@@ -184,66 +194,78 @@ namespace ScribbleServer
         /// <param name="forceDisconnect">Was the disconnect a Ctrl+C/Alt+F4 and such or just a leave button.</param>
         public void disconnectHandler(Client disconnectedClient, bool forceDisconnect)
         {
-            this.clients.Remove(disconnectedClient);
-            if (!forceDisconnect)
-                Server.Clients.Add(disconnectedClient);
-            else
-                Console.WriteLine("Client disconnected: " + disconnectedClient.ip + ":" + disconnectedClient.port);
-            this.playerCount--;
-            if (this.playerCount == 0)
+            try
             {
-                this.active = false;
-                Server.Games.Remove(this);
-                List<Client> serverBrowserClients = Server.serverBrowserClients.ToList();
-                foreach (Client serverbrowserClient in serverBrowserClients)
+                Server.ConnectedUsers.Remove(disconnectedClient);
+                this.clients.Remove(disconnectedClient);
+                if (!forceDisconnect)
+                    Server.Clients.Add(disconnectedClient);
+                else
                 {
-                    serverbrowserClient.writeStream.WriteLine("removeGame&" + this.gameID.ToString());
+                    string timeStamp = Server.GetTimestamp(DateTime.Now);
+                    Server.logs.Items.Add("Client disconnected: " + disconnectedClient.ip + ":" + disconnectedClient.port);
                 }
-            }
-            else
-            {
-                List<Client> serverBrowserClients = Server.serverBrowserClients.ToList();
-                foreach (Client clientToSend in serverBrowserClients)
+                this.playerCount--;
+                if (this.playerCount == 0)
                 {
-                    clientToSend.writeStream.WriteLine("playerCountUpdate&" + this.gameID.ToString() + "&" + this.playerCount.ToString());
-                }
-                if (this.gameCreator.Equals(disconnectedClient))
-                {
-                    bool valid = false;
-                    Random rnd = new Random();
-                    while (!valid)
+                    this.active = false;
+                    Server.Games.Remove(this);
+                    List<Client> serverBrowserClients = Server.serverBrowserClients.ToList();
+                    foreach (Client serverbrowserClient in serverBrowserClients)
                     {
-                        int r = rnd.Next(this.clients.Count);
-                        if (!this.gameCreator.Equals(this.clients[r]))
-                        {
-                            this.gameCreator = this.clients[r];
-                            valid = true;
-                        }
+                        serverbrowserClient.writeStream.WriteLine("removeGame&" + this.gameID.ToString());
                     }
-                    this.gameCreator.writeStream.WriteLine("youAreNewCreator&" + disconnectedClient.username);
-                    List<Client> clientsToWrite = this.clients.ToList();
-                    foreach (Client player in clientsToWrite)
-                    {
-                        if (!player.Equals(gameCreator) && !player.Equals(disconnectedClient))
-                        {
-                            player.writeStream.WriteLine("newCreator&" + gameCreator.username + "&" + disconnectedClient.username);
-                        }
-
-                    }
-
                 }
                 else
                 {
-                    List<Client> clientsToWrite = this.clients.ToList();
-                    foreach (Client player in clientsToWrite)
+                    List<Client> serverBrowserClients = Server.serverBrowserClients.ToList();
+                    foreach (Client clientToSend in serverBrowserClients)
                     {
-                        if (!player.Equals(disconnectedClient))
+                        clientToSend.writeStream.WriteLine("playerCountUpdate&" + this.gameID.ToString() + "&" + this.playerCount.ToString());
+                    }
+                    if (this.gameCreator.Equals(disconnectedClient))
+                    {
+                        bool valid = false;
+                        Random rnd = new Random();
+                        while (!valid)
                         {
-                            player.writeStream.WriteLine("userLeft&" + disconnectedClient.username);
+                            int r = rnd.Next(this.clients.Count);
+                            if (!this.gameCreator.Equals(this.clients[r]))
+                            {
+                                this.gameCreator = this.clients[r];
+                                valid = true;
+                            }
+                        }
+                        this.gameCreator.writeStream.WriteLine("youAreNewCreator&" + disconnectedClient.username);
+                        List<Client> clientsToWrite = this.clients.ToList();
+                        foreach (Client player in clientsToWrite)
+                        {
+                            if (!player.Equals(gameCreator) && !player.Equals(disconnectedClient))
+                            {
+                                player.writeStream.WriteLine("newCreator&" + gameCreator.username + "&" + disconnectedClient.username);
+                            }
+
+                        }
+
+                    }
+                    else
+                    {
+                        List<Client> clientsToWrite = this.clients.ToList();
+                        foreach (Client player in clientsToWrite)
+                        {
+                            if (!player.Equals(disconnectedClient))
+                            {
+                                player.writeStream.WriteLine("userLeft&" + disconnectedClient.username);
+                            }
                         }
                     }
                 }
             }
+            catch
+            {
+
+            }
+
         }
         public override string ToString()
         {
